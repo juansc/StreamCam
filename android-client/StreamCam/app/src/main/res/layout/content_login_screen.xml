@@ -12,8 +12,45 @@
     tools:context="juanscarrillo.streamcam.LoginScreen"
     tools:showIn="@layout/activity_login_screen">
 
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/username_login"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="106dp"
+        android:hint="@string/login_username_hint"
+        android:layout_alignRight="@+id/login_password"
+        android:layout_alignEnd="@+id/login_password"
+        android:layout_alignLeft="@+id/login_password"
+        android:layout_alignStart="@+id/login_password" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:ems="10"
+        android:id="@+id/login_password"
+        android:hint="@string/login_password_hint"
+        android:layout_below="@+id/username_login"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Login"
+        android:id="@+id/login_button"
+        android:layout_centerVertical="true"
+        android:layout_alignLeft="@+id/welcome_message_login"
+        android:layout_alignStart="@+id/welcome_message_login"
+        android:layout_alignRight="@+id/welcome_message_login"
+        android:layout_alignEnd="@+id/welcome_message_login" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Welcome to StreamCam!\nPlease login."
+        android:id="@+id/welcome_message_login"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>
