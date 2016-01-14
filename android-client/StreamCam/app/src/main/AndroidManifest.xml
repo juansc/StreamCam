@@ -10,7 +10,9 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".LoginScreen"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="portrait"
+            android:label="@string/LOGIN_title">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -20,7 +22,7 @@
         <activity
             android:name=".CameraActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_camera"
+            android:label="@string/CAMERA_SCREEN_title"
             android:theme="@style/FullscreenTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -28,8 +30,9 @@
         </activity>
         <activity
             android:name=".CreateNewAccountActivity"
-            android:label="@string/title_activity_create_new_account"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:label="@string/CREATE_ACC_title"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="juanscarrillo.streamcam.LoginScreen" />

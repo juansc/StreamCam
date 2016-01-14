@@ -51,6 +51,5 @@ public class LoginScreen extends AppCompatActivity {
     public void goToCreateAccountActivityFromLogin(View view) {
         Intent intent = new Intent(this, CreateNewAccountActivity.class);
         startActivity(intent);
-        finish();
     }
 }
