@@ -12,6 +12,15 @@
     tools:context="juanscarrillo.streamcam.LoginScreen"
     tools:showIn="@layout/activity_login_screen">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/LOGIN_welcome_message"
+        android:id="@+id/welcome_message_login"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -44,16 +53,8 @@
         android:layout_alignLeft="@+id/welcome_message_login"
         android:layout_alignStart="@+id/welcome_message_login"
         android:layout_alignRight="@+id/welcome_message_login"
-        android:layout_alignEnd="@+id/welcome_message_login" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/LOGIN_welcome_message"
-        android:id="@+id/welcome_message_login"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignEnd="@+id/welcome_message_login"
+        android:onClick="goToCameraActivity"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -64,5 +65,6 @@
         android:layout_alignRight="@+id/login_button"
         android:layout_alignEnd="@+id/login_button"
         android:layout_alignLeft="@+id/login_button"
-        android:layout_alignStart="@+id/login_button" />
+        android:layout_alignStart="@+id/login_button"
+        android:onClick="goToCreateAccountActivityFromLogin"/>
 </RelativeLayout>

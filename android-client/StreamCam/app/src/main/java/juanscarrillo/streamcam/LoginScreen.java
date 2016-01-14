@@ -1,5 +1,6 @@
 package juanscarrillo.streamcam;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -39,5 +40,17 @@ public class LoginScreen extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void goToCameraActivity(View view) {
+        Intent intent = new Intent(this, CameraActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    public void goToCreateAccountActivityFromLogin(View view) {
+        Intent intent = new Intent(this, CreateNewAccountActivity.class);
+        startActivity(intent);
+        finish();
     }
 }
