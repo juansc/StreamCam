@@ -1,0 +1,13 @@
+{
+  "name": "streamcam",
+  "version": "1.0.0",
+  "description": "Stream your videos to the cloud.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juansc/StreamCam.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.13.3",
+  }
+}
