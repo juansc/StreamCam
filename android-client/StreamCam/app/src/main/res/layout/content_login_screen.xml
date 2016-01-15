@@ -15,5 +15,56 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/LOGIN_welcome_message"
+        android:id="@+id/welcome_message_login"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/username_login"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="106dp"
+        android:hint="@string/LOGIN_username_hint"
+        android:layout_alignRight="@+id/login_password"
+        android:layout_alignEnd="@+id/login_password"
+        android:layout_alignLeft="@+id/login_password"
+        android:layout_alignStart="@+id/login_password"
+        android:inputType="textPersonName" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:ems="10"
+        android:id="@+id/login_password"
+        android:hint="@string/LOGIN_password_hint"
+        android:layout_below="@+id/username_login"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/LOGIN_login_button"
+        android:id="@+id/login_button"
+        android:layout_centerVertical="true"
+        android:layout_alignLeft="@+id/welcome_message_login"
+        android:layout_alignStart="@+id/welcome_message_login"
+        android:layout_alignRight="@+id/welcome_message_login"
+        android:layout_alignEnd="@+id/welcome_message_login"
+        android:onClick="goToCameraActivity"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/LOGIN_create_account_button"
+        android:id="@+id/button"
+        android:layout_below="@+id/login_button"
+        android:layout_alignRight="@+id/login_button"
+        android:layout_alignEnd="@+id/login_button"
+        android:layout_alignLeft="@+id/login_button"
+        android:layout_alignStart="@+id/login_button"
+        android:onClick="goToCreateAccountActivityFromLogin"/>
 </RelativeLayout>

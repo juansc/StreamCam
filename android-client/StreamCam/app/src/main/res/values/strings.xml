@@ -1,4 +1,21 @@
 <resources>
     <string name="app_name">StreamCam</string>
     <string name="action_settings">Settings</string>
+
+    <string name="LOGIN_title">Log In</string>
+    <string name="LOGIN_username_hint">User Name</string>
+    <string name="LOGIN_password_hint">Password</string>
+    <string name="LOGIN_login_button">Log In</string>
+    <string name="LOGIN_welcome_message">Welcome to StreamCam!\nPlease sign in.</string>
+    <string name="LOGIN_create_account_button">Create Account</string>
+
+    <string name="CAMERA_title">Camera</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">CAMERA GOES\nHERE</string>
+
+    <string name="CREATE_ACC_title">Create New Account</string>
+    <string name="CREATE_ACC_username_hint">User Name</string>
+    <string name="CREATE_ACC_password_hint">Password</string>
+    <string name="CREATE_ACC_confirm_password_hint">Confirm Password</string>
+    <string name="CREATE_ACC_button">Create Account</string>
 </resources>
