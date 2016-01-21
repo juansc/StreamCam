@@ -5,6 +5,7 @@
     android:background="#0099cc"
     tools:context="juanscarrillo.streamcam.CameraActivity"
     android:orientation="vertical">
+
     <SurfaceView
         android:layout_width="match_parent"
         android:layout_height="459dp"
