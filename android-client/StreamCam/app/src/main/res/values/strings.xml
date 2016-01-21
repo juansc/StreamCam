@@ -10,8 +10,8 @@
     <string name="LOGIN_create_account_button">Create Account</string>
 
     <string name="CAMERA_title">Camera</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">CAMERA GOES\nHERE</string>
+    <string name="CAMERA_take_pic_button">Take Picture</string>
+    <string name="CAMERA_flip_camera_button">Flip Camera</string>
 
     <string name="CREATE_ACC_title">Create New Account</string>
     <string name="CREATE_ACC_username_hint">User Name</string>
