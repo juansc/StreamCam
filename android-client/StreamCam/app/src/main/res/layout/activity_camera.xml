@@ -1,0 +1,35 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0099cc"
+    tools:context="juanscarrillo.streamcam.CameraActivity"
+    android:orientation="vertical">
+
+    <SurfaceView
+        android:layout_width="match_parent"
+        android:layout_height="459dp"
+        android:id="@+id/surfaceView" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal|bottom">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/CAMERA_flip_camera_button"
+            android:id="@+id/flip_camera_button"
+            android:layout_weight="1" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/CAMERA_take_pic_button"
+            android:id="@+id/take_pic_button" />
+    </LinearLayout>
+
+
+</LinearLayout>
