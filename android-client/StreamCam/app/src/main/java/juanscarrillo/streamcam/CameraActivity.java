@@ -11,11 +11,13 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.ImageReader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.util.Size;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -35,9 +37,12 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     private CameraManager cameraManager;
     private CameraDevice mCamera;
     private CameraCaptureSession mSession;
+    private CameraCharacteristics mCharacteristics;
     private String backCameraId = null;
     private String frontCameraId = null;
+    private Size mPreviewSize;
     private int mCaptureImageFormat;
+    private Surface mRawCaptureSurface, mJpegCaptureSurface, mPreviewSurface;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,12 +66,8 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
     // |           TextureView.SurfaceTextureListener           |
     // *--------------------------------------------------------*
     @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height){
-        try{
-            setup_camera();
-        }catch(CameraAccessException e){
-            Log.e(TAG, "Error when setting up camera", e);
-        }
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        setup_camera(surface);
     }
 
     @Override
@@ -93,11 +94,11 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
 
     // ==================================================================
 
-    private void setup_camera(){
+    private void setup_camera(SurfaceTexture surface){
         try {
             getCameraIds();
-            setupCameraFormat();
-            setupCameraCaptureSize();
+            setupCameraFormat(surface);
+            
         }
         catch (CameraAccessException e) {
             Log.e(TAG, "Getting error setting up camera" ,e);
@@ -123,7 +124,7 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         Log.d(TAG, "Back Camera is " + backCameraId + " and front camera is " + frontCameraId);
     }
 
-    private void setupCameraFormat() throws CameraAccessException {
+    private void setupCameraFormat(SurfaceTexture surface) throws CameraAccessException {
         CameraCharacteristics cc = cameraManager.getCameraCharacteristics(backCameraId);
         StreamConfigurationMap streamConfigs = cc.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
@@ -143,10 +144,46 @@ public class CameraActivity extends AppCompatActivity implements TextureView.Sur
         } else {
             throw new CameraAccessException(CameraAccessException.CAMERA_ERROR, "Could not find supported image format");
         }
+        setupImageReaders(streamConfigs, surface);
+
     }
 
-    private void setupCameraCaptureSize() throws CameraAccessException {
-        
+    private void setupImageReaders(StreamConfigurationMap streamConfigs, SurfaceTexture surface) throws CameraAccessException {
+        Size rawSize = streamConfigs.getOutputSizes(ImageFormat.RAW_SENSOR)[0];
+        Size jpegSize = streamConfigs.getOutputSizes(ImageFormat.JPEG)[0];
+
+        Size [] previewSizes = streamConfigs.getOutputSizes(SurfaceTexture.class);
+        mPreviewSize = findOptimalPreviewSize(previewSizes, rawSize);
+        if(mPreviewSize == null) {
+            throw new CameraAccessException(CameraAccessException.CAMERA_ERROR, "Unable to find optimal size");
+        }
+
+        mPreviewSurface = new Surface(surface);
+
+        ImageReader rawReader = ImageReader.newInstance(rawSize.getWidth(), rawSize.getHeight(),
+                ImageFormat.RAW_SENSOR, 1);
+        rawReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
+            @Override
+            public void onImageAvailable(ImageReader reader) {
+                //
+            }
+        }, null);
+        mRawCaptureSurface = rawReader.getSurface();
+
+        ImageReader jpegReader = ImageReader.newInstance(jpegSize.getWidth(), jpegSize.getHeight(),
+                ImageFormat.JPEG, 1);
+        jpegReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
+            @Override
+            public void onImageAvailable(ImageReader reader) {
+                //new SaveJpegTask(Camera2Activity.this, mPhotoDir, reader.acquireLatestImage()).execute();
+            }
+        }, null);
+        mJpegCaptureSurface = jpegReader.getSurface();
+
+
+
+
+
     }
 
 }
