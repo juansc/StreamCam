@@ -6,7 +6,7 @@
     tools:context="juanscarrillo.streamcam.CameraActivity"
     android:orientation="vertical">
 
-    <SurfaceView
+    <TextureView
         android:layout_width="match_parent"
         android:layout_height="459dp"
         android:id="@+id/surfaceView" />
