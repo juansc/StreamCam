@@ -54,7 +54,7 @@ public class CameraActivity extends AppCompatActivity {
     private int mCaptureImageFormat;
     private Surface mRawCaptureSurface, mJpegCaptureSurface, mPreviewSurface;
 
-    // My textureview
+    // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
     private TextureView.SurfaceTextureListener mSurfaceTextureListener =
             new TextureView.SurfaceTextureListener() {
@@ -80,7 +80,7 @@ public class CameraActivity extends AppCompatActivity {
                 }
             };
 
-    // Camera device
+    // Camera device that we need to request
     private CameraDevice mCameraDevice;
     private CameraDevice.StateCallback mCameraDeviceStateCallback
             = new CameraDevice.StateCallback() {
@@ -106,9 +106,12 @@ public class CameraActivity extends AppCompatActivity {
         }
     };
 
+    // This is necessary when asking for images and video from
+    // camera
     private CaptureRequest mPreviewCaptureRequest;
     private CaptureRequest.Builder mPreviewCaptureRequestBuilder;
 
+    // 
     private CameraCaptureSession mCameraCaptureSession;
     private CameraCaptureSession.CaptureCallback mSessionCallback =
             new CameraCaptureSession.CaptureCallback() {
