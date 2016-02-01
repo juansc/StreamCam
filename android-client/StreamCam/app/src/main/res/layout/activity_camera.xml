@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,29 +7,20 @@
     android:orientation="vertical">
 
     <TextureView
-        android:layout_width="match_parent"
-        android:layout_height="550dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/surfaceView" />
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <ImageButton
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="center_horizontal|bottom">
-
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/CAMERA_flip_camera_button"
-            android:id="@+id/flip_camera_button"
-            android:layout_weight="0.47" />
-
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/CAMERA_take_pic_button"
-            android:id="@+id/take_pic_button" />
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        android:id="@+id/CAMERA_record_button"
+        android:contentDescription="@string/CAMERA_record_button"
+        android:layout_marginBottom="71dp"
+        android:src="@android:drawable/ic_menu_camera"
+        android:background="#00ffffff"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 
 
-</LinearLayout>
+</RelativeLayout>
