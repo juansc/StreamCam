@@ -30,7 +30,8 @@
             android:name=".CameraActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/CAMERA_title"
-            android:theme="@style/FullscreenTheme">
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="juanscarrillo.streamcam.LoginScreen" />

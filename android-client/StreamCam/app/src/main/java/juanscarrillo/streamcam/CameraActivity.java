@@ -15,6 +15,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -44,15 +45,8 @@ public class CameraActivity extends AppCompatActivity {
 
     private static final String TAG = CameraActivity.class.getSimpleName();
 
-    private CameraManager cameraManager;
-    private CameraCaptureSession mSession;
-    private CameraCharacteristics mCharacteristics;
-    private String backCameraId = null;
-    private String frontCameraId = null;
     private String mCameraID;
     private Size mPreviewSize;
-    private int mCaptureImageFormat;
-    private Surface mRawCaptureSurface, mJpegCaptureSurface, mPreviewSurface;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -111,7 +105,7 @@ public class CameraActivity extends AppCompatActivity {
     private CaptureRequest mPreviewCaptureRequest;
     private CaptureRequest.Builder mPreviewCaptureRequestBuilder;
 
-    // 
+    //
     private CameraCaptureSession mCameraCaptureSession;
     private CameraCaptureSession.CaptureCallback mSessionCallback =
             new CameraCaptureSession.CaptureCallback() {
@@ -122,15 +116,14 @@ public class CameraActivity extends AppCompatActivity {
                 }
             };
 
+    private HandlerThread mBackgroundThread;
+    private Handler mBackgroundHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_camera);
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
         Log.d(TAG, "We've started the camera activity");
         mTextureView = (TextureView) findViewById(R.id.surfaceView);
 
@@ -139,11 +132,21 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+        openBackgroundThread();;
         if(mTextureView.isAvailable()){
-
+            setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
+            openCamera();
         } else {
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
+    }
+
+    @Override
+    public void onPause() {
+        closeCamera();
+        closeBackgroundThread();
+
+        super.onPause();
     }
 
     private void setupCamera(int width, int height) {
@@ -192,9 +195,20 @@ public class CameraActivity extends AppCompatActivity {
     private void openCamera() {
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
-            cameraManager.openCamera(mCameraID, mCameraDeviceStateCallback, null);
+            cameraManager.openCamera(mCameraID, mCameraDeviceStateCallback, mBackgroundHandler);
         } catch(CameraAccessException | SecurityException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void closeCamera() {
+        if(mCameraCaptureSession != null) {
+            mCameraCaptureSession.close();
+            mCameraCaptureSession = null;
+        }
+        if(mCameraDevice != null) {
+            mCameraDevice.close();
+            mCameraDevice = null;
         }
     }
 
@@ -211,19 +225,19 @@ public class CameraActivity extends AppCompatActivity {
                     new CameraCaptureSession.StateCallback() {
                         @Override
                         public void onConfigured(CameraCaptureSession session) {
-                            if(mCameraDevice == null) {
+                            if (mCameraDevice == null) {
                                 return;
                             }
                             try {
-                                mPreviewCaptureRequest =  mPreviewCaptureRequestBuilder.build();
+                                mPreviewCaptureRequest = mPreviewCaptureRequestBuilder.build();
                                 mCameraCaptureSession = session;
                                 // We repeatedly ask for images
                                 mCameraCaptureSession.setRepeatingRequest(
                                         mPreviewCaptureRequest,
                                         mSessionCallback,
-                                        null
+                                        mBackgroundHandler
                                 );
-                            } catch(CameraAccessException e) {
+                            } catch (CameraAccessException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -241,209 +255,23 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
-/*    // Everything in the following group needs to be implemented
-    // from TextureView.SurfaceTextureListener
-
-    // *--------------------------------------------------------*
-    // |                                                        |
-    // |           TextureView.SurfaceTextureListener           |
-    // *--------------------------------------------------------*
-    @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-        setup_camera(surface);
-    }
-
-    @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-        if (mCamera != null) {
-            mCamera.close();
-            mCamera = null;
-        }
-        mSession = null;
-        return true;
-    }
-
-    // Empty body
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-        // Nothing here
-    }
-
-    // Empty body
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-        // Nothing here
-    }
-
-    // ==================================================================
-
-    private void setup_camera(SurfaceTexture surface){
-        try {
-            getCameraIds();
-            setupCameraFormat(surface);
-
-        }
-        catch (CameraAccessException e) {
-            Log.e(TAG, "Getting error setting up camera" ,e);
-        }
-    }
-
-    private void getCameraIds() throws CameraAccessException  {
-        cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        String[] camerasOnDevice = cameraManager.getCameraIdList();
-        for(String cameraId : camerasOnDevice) {
-            CameraCharacteristics cameraInfo = cameraManager.getCameraCharacteristics(cameraId);
-
-            if (cameraInfo.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
-                backCameraId = cameraId;
-            } else if (cameraInfo.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
-                frontCameraId = cameraId;
-            }
-        }
-        if(backCameraId == null || frontCameraId == null) {
-            throw new CameraAccessException(CameraAccessException.CAMERA_ERROR, "Couldn't find suitable camera");
-        }
-
-        Log.d(TAG, "Back Camera is " + backCameraId + " and front camera is " + frontCameraId);
-    }
-
-    private void setupCameraFormat(SurfaceTexture surface) throws CameraAccessException {
-        CameraCharacteristics cc = cameraManager.getCameraCharacteristics(backCameraId);
-        StreamConfigurationMap streamConfigs = cc.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-
-        boolean supportsRaw = false, supportsJPEG = false;
-        for(int format : streamConfigs.getOutputFormats()) {
-            if(format == ImageFormat.RAW_SENSOR) {
-                supportsRaw = true;
-            } else if(format == ImageFormat.JPEG) {
-                supportsJPEG = true;
-            }
-        }
-
-        if(supportsRaw) {
-            mCaptureImageFormat = ImageFormat.RAW_SENSOR;
-        } else if(supportsJPEG) {
-            mCaptureImageFormat = ImageFormat.JPEG;
-        } else {
-            throw new CameraAccessException(CameraAccessException.CAMERA_ERROR, "Could not find supported image format");
-        }
-
-        setupImageReaders(streamConfigs, surface);
-
-        try {
-            cameraManager.openCamera(backCameraId, new CameraDevice.StateCallback() {
-                @Override
-                public void onOpened(@NonNull CameraDevice camera) {
-                    Log.d(TAG,"We opened the camera");
-                    mCamera = camera;
-                    initPreview();
-                }
-
-                @Override
-                public void onDisconnected(@NonNull CameraDevice camera) {
-
-                }
-
-                @Override
-                public void onError(@NonNull CameraDevice camera, int error) {
-
-                }
-            }, null);
-        } catch( SecurityException e) {
-            Log.e(TAG, "Unable to open camera");
-        }
+    private void openBackgroundThread() {
+        mBackgroundThread = new HandlerThread("Camera 2 Background Thread");
+        mBackgroundThread.start();
+        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
 
     }
 
-    private void setupImageReaders(StreamConfigurationMap streamConfigs, SurfaceTexture surface) throws CameraAccessException {
-        Size rawSize = streamConfigs.getOutputSizes(ImageFormat.RAW_SENSOR)[0];
-        Size jpegSize = streamConfigs.getOutputSizes(ImageFormat.JPEG)[0];
-
-        Size [] previewSizes = streamConfigs.getOutputSizes(SurfaceTexture.class);
-       // mPreviewSize = findOptimalPreviewSize(previewSizes, rawSize);
-        //if(mPreviewSize == null) {
-        //    throw new CameraAccessException(CameraAccessException.CAMERA_ERROR, "Unable to find optimal size");
-       // }
-
-        mPreviewSurface = new Surface(surface);
-
-        ImageReader rawReader = ImageReader.newInstance(rawSize.getWidth(), rawSize.getHeight(),
-                ImageFormat.RAW_SENSOR, 1);
-        rawReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
-            @Override
-            public void onImageAvailable(ImageReader reader) {
-                //
-            }
-        }, null);
-        mRawCaptureSurface = rawReader.getSurface();
-
-        ImageReader jpegReader = ImageReader.newInstance(jpegSize.getWidth(), jpegSize.getHeight(),
-                ImageFormat.JPEG, 1);
-        jpegReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
-            @Override
-            public void onImageAvailable(ImageReader reader) {
-                //new SaveJpegTask(Camera2Activity.this, mPhotoDir, reader.acquireLatestImage()).execute();
-            }
-        }, null);
-        mJpegCaptureSurface = jpegReader.getSurface();
-
-    }
-
-    private void initPreview() {
-        // scale preview size to fill screen width
-//        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-//        float previewRatio = mPreviewSize.getWidth() / ((float) mPreviewSize.getHeight());
-//        int previewHeight = Math.round(screenWidth * previewRatio);
-//        AbsListView.LayoutParams params = mPreviewView.getLayoutParams();
-//        params.width = screenWidth;
-//        params.height = previewHeight;
-
-        List<Surface> surfaces = Arrays.asList(mPreviewSurface, mRawCaptureSurface, mJpegCaptureSurface);
-        try {
-            mCamera.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
-                @Override
-                public void onConfigured(CameraCaptureSession session) {
-                    mSession = session;
-                    Log.d(TAG,"We should be seeing something");
-                    updatePreview();
-                }
-
-                @Override
-                public void onConfigureFailed(CameraCaptureSession session) {
-
-                }
-            }, null);
-        } catch (CameraAccessException e) {
-            Log.d(TAG, "Failed to create camera capture session", e);
+    private void closeBackgroundThread() {
+        mBackgroundThread.quitSafely();
+        try{
+            mBackgroundThread.join();
+            mBackgroundThread = null;
+            mBackgroundHandler = null;
+        } catch(InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
-    private void updatePreview() {
-        try {
-            if (mCamera == null || mSession == null) {
-                return;
-            }
-            CaptureRequest.Builder builder = mCamera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            builder.addTarget(mPreviewSurface);
-
-            builder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF);
-
-//            builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, ...)
-//            builder.set(CaptureRequest.SENSOR_SENSITIVITY, ...)
-//            builder.set(CaptureRequest.CONTROL_AWB_MODE, ...)
-//            builder.set(CaptureRequest.CONTROL_EFFECT_MODE, ...)
-//            builder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, ...)
-//            etc...
-
-            mSession.setRepeatingRequest(builder.build(), new CameraCaptureSession.CaptureCallback() {
-                @Override
-                public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
-                    // if desired, we can get updated auto focus & auto exposure values here from 'result'
-                }
-            }, null);
-        } catch (CameraAccessException e) {
-            Log.e(TAG, "Failed to start preview");
-        }
-    }*/
 
 }

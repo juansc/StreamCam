@@ -8,7 +8,7 @@
 
     <TextureView
         android:layout_width="match_parent"
-        android:layout_height="459dp"
+        android:layout_height="550dp"
         android:id="@+id/surfaceView" />
 
     <LinearLayout
@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:text="@string/CAMERA_flip_camera_button"
             android:id="@+id/flip_camera_button"
-            android:layout_weight="1" />
+            android:layout_weight="0.47" />
 
         <Button
             android:layout_width="match_parent"
