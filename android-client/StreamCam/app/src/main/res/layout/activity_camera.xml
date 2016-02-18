@@ -29,7 +29,7 @@
         android:text="Latitude:"
         android:id="@+id/latitudeText"
         android:layout_marginTop="37dp"
-        android:textColor="#FFFFFF"
+        android:textColor="#FF00FF"
         android:layout_alignParentTop="true"
         android:layout_toStartOf="@+id/CAMERA_record_button"
         android:layout_marginEnd="44dp" />
@@ -40,7 +40,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Longitude:"
         android:id="@+id/longitudeText"
-        android:textColor="#FFFFFF"
+        android:textColor="#FF00FF"
         android:layout_below="@+id/latitudeText"
         android:layout_alignStart="@+id/latitudeText" />
 

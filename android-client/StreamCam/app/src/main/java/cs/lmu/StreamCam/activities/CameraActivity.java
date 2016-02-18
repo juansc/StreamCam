@@ -1,39 +1,25 @@
 package cs.lmu.StreamCam.activities;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Camera;
-import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.location.Location;
-import android.media.ImageReader;
 import android.os.HandlerThread;
-import android.support.annotation.NonNull;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
-import android.view.MotionEvent;
 import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
-import android.view.MenuItem;
-import android.support.v4.app.NavUtils;
-import android.widget.AbsListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -212,7 +197,22 @@ public class CameraActivity extends AppCompatActivity
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        String longitude, latitude;
+        try {
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            if (mLastLocation != null) {
+                longitude = String.valueOf(mLastLocation.getLatitude());
+                latitude = String.valueOf(mLastLocation.getLongitude());
+            } else {
+                longitude = "Unavailable";
+                latitude = "Unavailable";
+            }
+            mLatitude.setText("Latidue:" + latitude);
+            mLongitude.setText("Longitude:" + longitude);
+        } catch(SecurityException e) {
+            Log.e(TAG, "Unable to acquire location.");
+        }
+
     }
 
     private void setupCamera(int width, int height) {
