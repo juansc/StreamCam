@@ -1,4 +1,4 @@
-package services;
+package cs.lmu.StreamCam.services;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -9,8 +9,8 @@ import java.util.Locale;
 /**
  * Created by juanscarrillo on 2/17/16.
  */
-public class FetchAddressIntentService extends IntentService{
-    @Override
+public class FetchAddressIntentService {
+    /*@Override
     protected void onCreate() {
 
     }
@@ -33,6 +33,6 @@ public class FetchAddressIntentService extends IntentService{
     @Override
     protected void onHandleIntent(Intent intent) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-    }
+    }*/
 
 }

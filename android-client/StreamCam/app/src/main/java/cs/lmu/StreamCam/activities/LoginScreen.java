@@ -1,4 +1,4 @@
-package juanscarrillo.streamcam;
+package cs.lmu.StreamCam.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +9,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import cs.lmu.StreamCam.R;
 
 public class LoginScreen extends AppCompatActivity {
 

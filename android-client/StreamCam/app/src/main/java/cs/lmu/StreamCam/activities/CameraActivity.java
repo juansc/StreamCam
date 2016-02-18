@@ -1,4 +1,4 @@
-package juanscarrillo.streamcam;
+package cs.lmu.StreamCam.activities;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -43,10 +43,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
-public class CameraActivity extends AppCompatActivity implements ConnectionCallbacks, OnConnectionFailedListener {
+import cs.lmu.StreamCam.R;
+
+public class CameraActivity extends AppCompatActivity
+             implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = CameraActivity.class.getSimpleName();
 
@@ -159,6 +164,15 @@ public class CameraActivity extends AppCompatActivity implements ConnectionCallb
 
     }
 
+    @Override
+    public void onConnectionSuspended(int x ){
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult x) {
+
+    }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
