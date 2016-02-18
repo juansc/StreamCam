@@ -18,7 +18,7 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".LoginScreen"
+            android:name="cs.lmu.StreamCam.activities.LoginScreen"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="portrait"
             android:label="@string/LOGIN_title">
@@ -28,23 +28,23 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".CameraActivity"
+            android:name="cs.lmu.StreamCam.activities.CameraActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/CAMERA_title"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="juanscarrillo.streamcam.LoginScreen" />
+                android:value="cs.lmu.StreamCam.activities.LoginScreen" />
         </activity>
         <activity
-            android:name=".CreateNewAccountActivity"
+            android:name="cs.lmu.StreamCam.activities.CreateNewAccountActivity"
             android:label="@string/CREATE_ACC_title"
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="juanscarrillo.streamcam.LoginScreen" />
+                android:value="cs.lmu.StreamCam.activities.LoginScreen" />
         </activity>
     </application>
 
