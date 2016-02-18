@@ -22,5 +22,27 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Latitude:"
+        android:id="@+id/latitudeText"
+        android:layout_marginTop="37dp"
+        android:textColor="#FFFFFF"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/CAMERA_record_button"
+        android:layout_marginEnd="44dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Longitude:"
+        android:id="@+id/longitudeText"
+        android:textColor="#FFFFFF"
+        android:layout_below="@+id/latitudeText"
+        android:layout_alignStart="@+id/latitudeText" />
+
 
 </RelativeLayout>

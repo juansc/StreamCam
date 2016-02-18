@@ -14,6 +14,7 @@ import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.location.Location;
 import android.media.ImageReader;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
@@ -23,6 +24,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.util.Size;
+import android.util.SparseIntArray;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -32,6 +34,7 @@ import android.view.View;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 import android.widget.AbsListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -40,13 +43,19 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 
-public class CameraActivity extends AppCompatActivity {
+public class CameraActivity extends AppCompatActivity implements ConnectionCallbacks, OnConnectionFailedListener {
 
     private static final String TAG = CameraActivity.class.getSimpleName();
 
     private String mCameraID;
     private Size mPreviewSize;
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
+    private TextView mLatitude;
+    private TextView mLongitude;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -119,13 +128,34 @@ public class CameraActivity extends AppCompatActivity {
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
 
+    private static SparseIntArray ORIENTATIONS = new SparseIntArray();
+    static{
+        ORIENTATIONS.append(Surface.ROTATION_0, 0);
+        ORIENTATIONS.append(Surface.ROTATION_90, 90);
+        ORIENTATIONS.append(Surface.ROTATION_180, 180);
+        ORIENTATIONS.append(Surface.ROTATION_270, 270);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
+        mGoogleApiClient.connect();
+
+
         setContentView(R.layout.activity_camera);
         Log.d(TAG, "We've started the camera activity");
+
         mTextureView = (TextureView) findViewById(R.id.surfaceView);
+        mLatitude = (TextView) findViewById(R.id.latitudeText);
+        mLongitude = (TextView) findViewById(R.id.longitudeText);
 
     }
 
@@ -147,6 +177,7 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+        mGoogleApiClient.connect();
         openBackgroundThread();;
         if(mTextureView.isAvailable()){
             setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
@@ -160,8 +191,14 @@ public class CameraActivity extends AppCompatActivity {
     public void onPause() {
         closeCamera();
         closeBackgroundThread();
+        mGoogleApiClient.disconnect();
 
         super.onPause();
+    }
+
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
     }
 
     private void setupCamera(int width, int height) {
@@ -173,6 +210,18 @@ public class CameraActivity extends AppCompatActivity {
                     continue;
                 }
                 StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+
+                /*int deviceOrientation = getWindowManager().getDefaultDisplay().getRotation();
+                int totalRotation = sensorToDeviceRotation(cameraCharacteristics, deviceOrientation);
+                boolean inLandscapeMode = totalRotation == 90 || totalRotation == 270;
+
+                int rotatedWidth = width;
+                int rotatedHeight = height;
+                if(inLandscapeMode) {
+                    rotatedHeight = width;
+                    rotatedWidth = height;
+                }*/
+
                 mPreviewSize = getPreferredPreviewSize(map.getOutputSizes(SurfaceTexture.class), width, height);
                 mCameraID = cameraID;
                 return;
@@ -286,6 +335,13 @@ public class CameraActivity extends AppCompatActivity {
         } catch(InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private static int sensorToDeviceRotation(CameraCharacteristics cameraCharacteristics,int deviceOrientation) {
+        int sensorOrientation = cameraCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+        deviceOrientation = ORIENTATIONS.get(deviceOrientation);
+        return (sensorOrientation + deviceOrientation + 360) % 360;
+
     }
 
 
