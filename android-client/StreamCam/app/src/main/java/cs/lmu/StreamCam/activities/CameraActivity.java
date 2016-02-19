@@ -1,6 +1,7 @@
 package cs.lmu.StreamCam.activities;
 
 import android.content.Context;
+import android.content.IntentSender;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -30,8 +31,17 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 import cs.lmu.StreamCam.R;
 
@@ -197,7 +207,12 @@ public class CameraActivity extends AppCompatActivity
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        String longitude, latitude;
+        getUserLocation();
+    }
+
+    public void getUserLocation() {
+        String longitude = "Unavailable";
+        String latitude = "Unavailable";
         try {
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if (mLastLocation != null) {
@@ -207,12 +222,47 @@ public class CameraActivity extends AppCompatActivity
                 longitude = "Unavailable";
                 latitude = "Unavailable";
             }
-            mLatitude.setText("Latidue:" + latitude);
-            mLongitude.setText("Longitude:" + longitude);
         } catch(SecurityException e) {
             Log.e(TAG, "Unable to acquire location.");
         }
 
+        mLatitude.setText("Latidue:" + latitude);
+        mLongitude.setText("Longitude:" + longitude);
+
+        LocationRequest mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+
+        final PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,
+                        builder.build());
+
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult locationSettingsResult) {
+
+                final int REQUEST_CHECK_SETTINGS = 0x1;
+
+                final Status status = locationSettingsResult.getStatus();
+                switch(status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        try {
+                            status.startResolutionForResult(CameraActivity.this, REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    case  LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        break;
+                }
+            }
+        });
     }
 
     private void setupCamera(int width, int height) {
