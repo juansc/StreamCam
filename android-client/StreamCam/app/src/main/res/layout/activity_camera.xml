@@ -28,11 +28,10 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Latitude:"
         android:id="@+id/latitudeText"
-        android:layout_marginTop="37dp"
         android:textColor="#FF00FF"
+        android:layout_marginTop="41dp"
         android:layout_alignParentTop="true"
-        android:layout_toStartOf="@+id/CAMERA_record_button"
-        android:layout_marginEnd="44dp" />
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -43,6 +42,30 @@
         android:textColor="#FF00FF"
         android:layout_below="@+id/latitudeText"
         android:layout_alignStart="@+id/latitudeText" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/latitudeValue"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/latitudeText"
+        android:layout_above="@+id/longitudeText"
+        android:layout_toEndOf="@+id/latitudeText"
+        android:textColor="#FF00FF"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/longitudeValue"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/longitudeText"
+        android:layout_toEndOf="@+id/longitudeText"
+        android:textColor="#FF00FF"
+        android:layout_alignBottom="@+id/longitudeText"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
 
 </RelativeLayout>

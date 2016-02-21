@@ -24,10 +24,12 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -41,12 +43,13 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 import cs.lmu.StreamCam.R;
 
 public class CameraActivity extends AppCompatActivity
-             implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+             implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private static final String TAG = CameraActivity.class.getSimpleName();
 
@@ -56,6 +59,10 @@ public class CameraActivity extends AppCompatActivity
     private Location mLastLocation;
     private TextView mLatitude;
     private TextView mLongitude;
+    private boolean mRequestingLocationUpdates;
+    private LocationRequest mLocationRequest;
+    private Location mCurrentLocation;
+    private String mLastUpdateTime;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -148,14 +155,15 @@ public class CameraActivity extends AppCompatActivity
                     .build();
         }
         mGoogleApiClient.connect();
+        mRequestingLocationUpdates = true;
 
 
         setContentView(R.layout.activity_camera);
         Log.d(TAG, "We've started the camera activity");
 
         mTextureView = (TextureView) findViewById(R.id.surfaceView);
-        mLatitude = (TextView) findViewById(R.id.latitudeText);
-        mLongitude = (TextView) findViewById(R.id.longitudeText);
+        mLatitude = (TextView) findViewById(R.id.latitudeValue);
+        mLongitude = (TextView) findViewById(R.id.longitudeValue);
 
     }
 
@@ -207,29 +215,43 @@ public class CameraActivity extends AppCompatActivity
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        getUserLocation();
+        setupLocationRequests();
+        mLastLocation = getUserLocation();
+        updateLocationDisplay(mLastLocation);
+        if(mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
     }
 
-    public void getUserLocation() {
+    @Override
+    public void onLocationChanged(Location location) {
+        mCurrentLocation = location;
+        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+        updateLocationDisplay(mCurrentLocation); // Implement
+        Toast.makeText(
+                getApplicationContext(),
+                "Location Updated!!!",
+                Toast.LENGTH_SHORT).show();
+
+    }
+
+    public void updateLocationDisplay(Location currentLocation) {
         String longitude = "Unavailable";
         String latitude = "Unavailable";
-        try {
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            if (mLastLocation != null) {
-                longitude = String.valueOf(mLastLocation.getLatitude());
-                latitude = String.valueOf(mLastLocation.getLongitude());
-            } else {
-                longitude = "Unavailable";
-                latitude = "Unavailable";
-            }
-        } catch(SecurityException e) {
-            Log.e(TAG, "Unable to acquire location.");
+
+        if (currentLocation != null) {
+            longitude = String.valueOf(currentLocation.getLatitude());
+            latitude = String.valueOf(currentLocation.getLongitude());
         }
 
-        mLatitude.setText("Latidue:" + latitude);
-        mLongitude.setText("Longitude:" + longitude);
+        mLatitude.setText(latitude);
+        mLongitude.setText(longitude);
 
-        LocationRequest mLocationRequest = new LocationRequest();
+    }
+
+
+    public void setupLocationRequests() {
+        mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -248,7 +270,7 @@ public class CameraActivity extends AppCompatActivity
                 final int REQUEST_CHECK_SETTINGS = 0x1;
 
                 final Status status = locationSettingsResult.getStatus();
-                switch(status.getStatusCode()) {
+                switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
@@ -258,11 +280,30 @@ public class CameraActivity extends AppCompatActivity
                             e.printStackTrace();
                         }
                         break;
-                    case  LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                         break;
                 }
             }
         });
+    }
+    public Location getUserLocation() {
+        Location currentLocation = null;
+
+        try {
+            currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        } catch(SecurityException e) {
+            Log.e(TAG, "Unable to acquire location.");
+        }
+
+        return currentLocation;
+    }
+
+    public void startLocationUpdates() {
+        try {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        } catch(SecurityException e) {
+            e.printStackTrace();
+        }
     }
 
     private void setupCamera(int width, int height) {
