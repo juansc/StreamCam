@@ -17,4 +17,10 @@
     <string name="CREATE_ACC_password_hint">Password</string>
     <string name="CREATE_ACC_confirm_password_hint">Confirm Password</string>
     <string name="CREATE_ACC_button">Create Account</string>
+
+    <string name="ADDRESS_SERVICES_service_not_available">Address services is not available.</string>
+    <string name="ADDRESS_SERVICES_invalid_lat_long_used">Invalid latitude/longitude values used.</string>
+    <string name="ADDRESS_SERVICES_no_address_found">No address found for coordinates.</string>
+    <string name="ADDRESS_SERVICES_address_found">Address was found for coordinates.</string>
+    <string name="ADDRESS_SERVICES_no_geocoder_available">No Geocoder available.</string>
 </resources>

@@ -46,7 +46,6 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Text"
         android:id="@+id/latitudeValue"
         android:layout_alignParentEnd="true"
         android:layout_alignTop="@+id/latitudeText"
@@ -58,7 +57,6 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Text"
         android:id="@+id/longitudeValue"
         android:layout_alignParentEnd="true"
         android:layout_alignTop="@+id/longitudeText"
@@ -66,6 +64,16 @@
         android:textColor="#FF00FF"
         android:layout_alignBottom="@+id/longitudeText"
         android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/addressValue"
+        android:textColor="#FF00FF"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_above="@+id/CAMERA_record_button"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="106dp" />
 
 
 </RelativeLayout>

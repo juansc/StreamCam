@@ -1,6 +1,7 @@
 package cs.lmu.StreamCam.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -10,8 +11,10 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.HandlerThread;
+import android.os.ResultReceiver;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,7 +36,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
@@ -42,11 +44,12 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 import cs.lmu.StreamCam.R;
+import cs.lmu.StreamCam.services.Constants;
+import cs.lmu.StreamCam.services.FetchAddressIntentService;
 
 public class CameraActivity extends AppCompatActivity
              implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -59,10 +62,13 @@ public class CameraActivity extends AppCompatActivity
     private Location mLastLocation;
     private TextView mLatitude;
     private TextView mLongitude;
+    private TextView mAddress;
     private boolean mRequestingLocationUpdates;
     private LocationRequest mLocationRequest;
     private Location mCurrentLocation;
     private String mLastUpdateTime;
+    private AddressResultReceiver mResultReceiver;
+    private boolean mAddressRequested;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -156,6 +162,8 @@ public class CameraActivity extends AppCompatActivity
         }
         mGoogleApiClient.connect();
         mRequestingLocationUpdates = true;
+        mAddressRequested = true;
+        mResultReceiver = new AddressResultReceiver(new Handler());
 
 
         setContentView(R.layout.activity_camera);
@@ -164,6 +172,7 @@ public class CameraActivity extends AppCompatActivity
         mTextureView = (TextureView) findViewById(R.id.surfaceView);
         mLatitude = (TextView) findViewById(R.id.latitudeValue);
         mLongitude = (TextView) findViewById(R.id.longitudeValue);
+        mAddress = (TextView) findViewById(R.id.addressValue);
 
     }
 
@@ -217,22 +226,33 @@ public class CameraActivity extends AppCompatActivity
     public void onConnected(Bundle connectionHint) {
         setupLocationRequests();
         mLastLocation = getUserLocation();
+        mCurrentLocation = mLastLocation;
         updateLocationDisplay(mLastLocation);
+
         if(mRequestingLocationUpdates) {
             startLocationUpdates();
         }
+
+        if(mLastLocation != null) {
+            if(!Geocoder.isPresent()) {
+                Toast.makeText(this,R.string.ADDRESS_SERVICES_no_geocoder_available,
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+            if(mAddressRequested) {
+                startAddressIntentService();
+            }
+        }
+
+
     }
 
     @Override
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-        updateLocationDisplay(mCurrentLocation); // Implement
-        Toast.makeText(
-                getApplicationContext(),
-                "Location Updated!!!",
-                Toast.LENGTH_SHORT).show();
-
+        updateLocationDisplay(mCurrentLocation);
+        Log.e(TAG, "Location updated!");
     }
 
     public void updateLocationDisplay(Location currentLocation) {
@@ -247,8 +267,16 @@ public class CameraActivity extends AppCompatActivity
         mLatitude.setText(latitude);
         mLongitude.setText(longitude);
 
+        if(mAddressRequested) {
+            startAddressIntentService();
+        }
+
     }
 
+    public void updateAddressDisplay(String address) {
+        Log.e(TAG, "The address has been set in textview");
+        mAddress.setText(address);
+    }
 
     public void setupLocationRequests() {
         mLocationRequest = new LocationRequest();
@@ -286,6 +314,7 @@ public class CameraActivity extends AppCompatActivity
             }
         });
     }
+
     public Location getUserLocation() {
         Location currentLocation = null;
 
@@ -304,6 +333,14 @@ public class CameraActivity extends AppCompatActivity
         } catch(SecurityException e) {
             e.printStackTrace();
         }
+    }
+
+    protected void startAddressIntentService() {
+        Intent intent = new Intent(this, FetchAddressIntentService.class);
+        intent.putExtra(Constants.RECEIVER, mResultReceiver);
+        intent.putExtra(Constants.LOCATION_DATA_EXTRA, mCurrentLocation);
+        startService(intent);
+        Log.e(TAG, "Called the intent!!!");
     }
 
     private void setupCamera(int width, int height) {
@@ -447,6 +484,26 @@ public class CameraActivity extends AppCompatActivity
         deviceOrientation = ORIENTATIONS.get(deviceOrientation);
         return (sensorOrientation + deviceOrientation + 360) % 360;
 
+    }
+
+
+    class AddressResultReceiver extends ResultReceiver {
+        public AddressResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            String mAddressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
+            updateAddressDisplay(mAddressOutput);
+
+            if(resultCode == Constants.SUCCESS_RESULT) {
+                Log.e(TAG, "Found an address");
+
+            } else{
+                Log.e(TAG,"Failed to find address");
+            }
+        }
     }
 
 
