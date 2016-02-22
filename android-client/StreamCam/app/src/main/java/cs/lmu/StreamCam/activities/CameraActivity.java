@@ -50,6 +50,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import cs.lmu.StreamCam.R;
 import cs.lmu.StreamCam.services.Constants;
 import cs.lmu.StreamCam.services.FetchAddressIntentService;
+import cs.lmu.StreamCam.services.TravelLog;
 
 public class CameraActivity extends AppCompatActivity
              implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -60,15 +61,17 @@ public class CameraActivity extends AppCompatActivity
     private Size mPreviewSize;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
-    private TextView mLatitude;
-    private TextView mLongitude;
-    private TextView mAddress;
+    private TextView mLatitudeTextView;
+    private TextView mLongitudeTextView;
+    private TextView mAddressTextView;
+    private String mCurrentAddress;
     private boolean mRequestingLocationUpdates;
     private LocationRequest mLocationRequest;
     private Location mCurrentLocation;
     private String mLastUpdateTime;
     private AddressResultReceiver mResultReceiver;
     private boolean mAddressRequested;
+    private TravelLog mTravelLog;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -160,19 +163,22 @@ public class CameraActivity extends AppCompatActivity
                     .addApi(LocationServices.API)
                     .build();
         }
+
         mGoogleApiClient.connect();
         mRequestingLocationUpdates = true;
         mAddressRequested = true;
         mResultReceiver = new AddressResultReceiver(new Handler());
+
+        mTravelLog = new TravelLog();
 
 
         setContentView(R.layout.activity_camera);
         Log.d(TAG, "We've started the camera activity");
 
         mTextureView = (TextureView) findViewById(R.id.surfaceView);
-        mLatitude = (TextView) findViewById(R.id.latitudeValue);
-        mLongitude = (TextView) findViewById(R.id.longitudeValue);
-        mAddress = (TextView) findViewById(R.id.addressValue);
+        mLatitudeTextView = (TextView) findViewById(R.id.latitudeValue);
+        mLongitudeTextView = (TextView) findViewById(R.id.longitudeValue);
+        mAddressTextView = (TextView) findViewById(R.id.addressValue);
 
     }
 
@@ -264,8 +270,8 @@ public class CameraActivity extends AppCompatActivity
             latitude = String.valueOf(currentLocation.getLongitude());
         }
 
-        mLatitude.setText(latitude);
-        mLongitude.setText(longitude);
+        mLatitudeTextView.setText(latitude);
+        mLongitudeTextView.setText(longitude);
 
         if(mAddressRequested) {
             startAddressIntentService();
@@ -273,9 +279,13 @@ public class CameraActivity extends AppCompatActivity
 
     }
 
+    public void appendToTravelLog() {
+        mTravelLog.add(mCurrentLocation, mCurrentAddress);
+    }
+
     public void updateAddressDisplay(String address) {
-        Log.e(TAG, "The address has been set in textview");
-        mAddress.setText(address);
+        Log.e(TAG, "The address has been set in TextView");
+        mAddressTextView.setText(address);
     }
 
     public void setupLocationRequests() {
@@ -495,7 +505,10 @@ public class CameraActivity extends AppCompatActivity
         @Override
         protected void onReceiveResult(int resultCode, Bundle resultData) {
             String mAddressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
+            mCurrentAddress = mAddressOutput;
             updateAddressDisplay(mAddressOutput);
+
+            appendToTravelLog();
 
             if(resultCode == Constants.SUCCESS_RESULT) {
                 Log.e(TAG, "Found an address");
