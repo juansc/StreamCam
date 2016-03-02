@@ -26,17 +26,40 @@ app.post '/api/v1/users', (req, res) ->
     return res.json {message: "Password must have at least eight characters"}
 
   db_client.query
-    text: "INSERT INTO users(username, password) values ($1, $2)"
+    text: "INSERT INTO users(username, password) values ($1, crypt($2,gen_salt('bf',8)))"
     values: [username, password]
   , (err, result) ->
     if err
       if err.code is '23505'
         return res.json {message: "Insertion failed! Reasons: Username already exists!"}
+      console.log err
       return res.json {message: "Insertion failed!"}
-    res.json {message:"Insertion was successful"}
+    res.status(201).json {message:"Insertion was successful"}
+
+
 
 app.all '/api/v1/users', (req,res) ->
   res.status(405).json 'message' : 'method not allowed'
+
+app.post '/api/v1/authenticate', (req, res) ->
+  data = req.body
+  unless data.user and data.password
+    return res.status().json {message: "Please provide a username and password"}
+  db_client.query
+    text: "SELECT EXISTS(
+           SELECT 1 FROM users
+           WHERE username=$1
+           AND
+           password=crypt($2, password)
+           )"
+    values: [data.user, data.password]
+  , (err, result) ->
+    if err
+      return res.json {message: "Some error occurred..."}
+    if result.rows[0].exists
+      return res.json {message: "You are in the database!!!"}
+    else
+      return res.json {message: "You are not in the database!!!"}
 
 app.listen port
 console.log "Magic happens on port #{port}"
