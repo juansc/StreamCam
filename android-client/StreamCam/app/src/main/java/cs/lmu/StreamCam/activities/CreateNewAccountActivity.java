@@ -65,15 +65,17 @@ public class CreateNewAccountActivity extends AppCompatActivity {
         boolean hasValidInputs = false;
         String message = "";
 
-        if(username.isEmpty()) {
+        if (username.isEmpty()) {
             message = "Please provide a username.";
-        } else if(password.isEmpty()) {
+        } else if (password.isEmpty()) {
             message = "Please provide a password.";
-        } else if(confirmPassword.isEmpty()) {
+        } else if (confirmPassword.isEmpty()) {
             message = "Please confirm your password";
-        } else if(!password.equals(confirmPassword)) {
+        } else if (!password.equals(confirmPassword)) {
             message = "Your passwords do not match";
-        } else {
+        } else if (password.length() < 8) {
+            message = "Your password must have at least 8 characters.";
+        } else{
             hasValidInputs =  true;
         }
 
