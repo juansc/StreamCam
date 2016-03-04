@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
         android:ems="10"
-        android:id="@+id/editText"
+        android:id="@+id/CREATE_ACCOUNT_username"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="62dp"
@@ -28,8 +28,8 @@
         android:layout_height="wrap_content"
         android:inputType="textPassword"
         android:ems="10"
-        android:id="@+id/editText2"
-        android:layout_below="@+id/editText"
+        android:id="@+id/CREATE_ACCOUNT_password"
+        android:layout_below="@+id/CREATE_ACCOUNT_username"
         android:layout_centerHorizontal="true"
         android:hint="@string/CREATE_ACC_password_hint" />
 
@@ -38,8 +38,8 @@
         android:layout_height="wrap_content"
         android:inputType="textPassword"
         android:ems="10"
-        android:id="@+id/editText3"
-        android:layout_below="@+id/editText2"
+        android:id="@+id/CREATE_ACCOUNT_confirm_password"
+        android:layout_below="@+id/CREATE_ACCOUNT_password"
         android:layout_centerHorizontal="true"
         android:hint="@string/CREATE_ACC_confirm_password_hint" />
 
@@ -47,8 +47,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/CREATE_ACC_button"
-        android:id="@+id/button2"
+        android:id="@+id/CREATE_ACCOUNT_create_account_button"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:onClick="goToCameraActivityFromCreateAccount"/>
+        android:onClick="createAccountButtonClicked"/>
 </RelativeLayout>

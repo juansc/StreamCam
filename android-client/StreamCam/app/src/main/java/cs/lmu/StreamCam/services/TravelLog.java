@@ -18,14 +18,17 @@ public class TravelLog {
     private String lastAddress;
 
     public TravelLog() {
-
+        this.log = new LinkedList<TimedLocation>();
     }
 
     public void add(Location location, String address){
         Date currentTime = new Date();
         if(this.log.size() == 0) {
             this.initialTimeStamp = currentTime;
+            this.lastTimeStamp = currentTime;
             this.initialLocation = location;
+            this.lastLocation = location;
+            this.lastAddress = address;
         }
         if(lastAddress.equals(address) || lastLocation.equals(location)) {
             return;

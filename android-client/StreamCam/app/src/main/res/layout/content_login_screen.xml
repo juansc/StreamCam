@@ -24,47 +24,57 @@
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/username_login"
+        android:inputType="textFilter"
+        android:id="@+id/LOGIN_username_text"
         android:layout_alignParentTop="true"
         android:layout_marginTop="106dp"
         android:hint="@string/LOGIN_username_hint"
-        android:layout_alignRight="@+id/login_password"
-        android:layout_alignEnd="@+id/login_password"
-        android:layout_alignLeft="@+id/login_password"
-        android:layout_alignStart="@+id/login_password"
-        android:inputType="textPersonName" />
+        android:layout_alignRight="@+id/LOGIN_password_text"
+        android:layout_alignEnd="@+id/LOGIN_password_text"
+        android:layout_alignLeft="@+id/LOGIN_password_text"
+        android:layout_alignStart="@+id/LOGIN_password_text"/>
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:inputType="textPassword"
+        android:inputType="textVisiblePassword"
         android:ems="10"
-        android:id="@+id/login_password"
+        android:id="@+id/LOGIN_password_text"
         android:hint="@string/LOGIN_password_hint"
-        android:layout_below="@+id/username_login"
+        android:layout_below="@+id/LOGIN_username_text"
         android:layout_centerHorizontal="true" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/LOGIN_login_button"
-        android:id="@+id/login_button"
+        android:id="@+id/LOGIN_login_button"
         android:layout_centerVertical="true"
         android:layout_alignLeft="@+id/welcome_message_login"
         android:layout_alignStart="@+id/welcome_message_login"
         android:layout_alignRight="@+id/welcome_message_login"
         android:layout_alignEnd="@+id/welcome_message_login"
-        android:onClick="goToCameraActivity"/>
+        android:onClick="loginButtonClicked"/>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/LOGIN_create_account_button"
         android:id="@+id/button"
-        android:layout_below="@+id/login_button"
-        android:layout_alignRight="@+id/login_button"
-        android:layout_alignEnd="@+id/login_button"
-        android:layout_alignLeft="@+id/login_button"
-        android:layout_alignStart="@+id/login_button"
+        android:layout_below="@+id/LOGIN_login_button"
+        android:layout_alignRight="@+id/LOGIN_login_button"
+        android:layout_alignEnd="@+id/LOGIN_login_button"
+        android:layout_alignLeft="@+id/LOGIN_login_button"
+        android:layout_alignStart="@+id/LOGIN_login_button"
         android:onClick="goToCreateAccountActivityFromLogin"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/LOGIN_HTTP_response"
+        android:layout_below="@+id/button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="37dp"
+        android:hint="HTTP Response will go here!" />
 </RelativeLayout>
