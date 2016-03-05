@@ -11,8 +11,9 @@ port = process.env.PORT || 3000
 router = express.Router()
 
 # All our routes will be here
-router.get '/', (req, res) ->
-  res.json {message: "hooray! Welcome to our api!"}
+app.get '/', (req, res) ->
+  res.status(200).json {message: "hooray! Welcome to our api!"}
+  console.log "Someone hit the api"
 
 # All the routes will be prefixed with /api
 

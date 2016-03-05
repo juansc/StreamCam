@@ -20,9 +20,9 @@ public class CreateNewAccountActivity extends AppCompatActivity {
     private EditText mUsernameText;
     private EditText mPasswordText;
     private EditText mPasswordConfirmText;
-    private String username;
-    private String password;
-    private String confirmPassword;
+    private String mUsername;
+    private String mPassword;
+    private String mConfirmPassword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,9 +44,9 @@ public class CreateNewAccountActivity extends AppCompatActivity {
     }
 
     public void createAccountButtonClicked(View view) {
-        username = mUsernameText.getText().toString();
-        password = mPasswordText.getText().toString();
-        confirmPassword = mPasswordConfirmText.getText().toString();
+        mUsername = mUsernameText.getText().toString().trim();
+        mPassword = mPasswordText.getText().toString();
+        mConfirmPassword = mPasswordConfirmText.getText().toString();
 
         CustomDiagnostic inputsDiagnostic = inputsAreValid();
 
@@ -65,15 +65,15 @@ public class CreateNewAccountActivity extends AppCompatActivity {
         boolean hasValidInputs = false;
         String message = "";
 
-        if (username.isEmpty()) {
+        if (mUsername.isEmpty()) {
             message = "Please provide a username.";
-        } else if (password.isEmpty()) {
+        } else if (mPassword.isEmpty()) {
             message = "Please provide a password.";
-        } else if (confirmPassword.isEmpty()) {
+        } else if (mConfirmPassword.isEmpty()) {
             message = "Please confirm your password";
-        } else if (!password.equals(confirmPassword)) {
+        } else if (!mPassword.equals(mConfirmPassword)) {
             message = "Your passwords do not match";
-        } else if (password.length() < 8) {
+        } else if (mPassword.length() < 8) {
             message = "Your password must have at least 8 characters.";
         } else{
             hasValidInputs =  true;

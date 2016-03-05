@@ -24,7 +24,7 @@
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:inputType="textFilter"
+        android:inputType="textVisiblePassword"
         android:id="@+id/LOGIN_username_text"
         android:layout_alignParentTop="true"
         android:layout_marginTop="106dp"
@@ -37,7 +37,7 @@
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:inputType="textVisiblePassword"
+        android:inputType="textPassword"
         android:ems="10"
         android:id="@+id/LOGIN_password_text"
         android:hint="@string/LOGIN_password_hint"

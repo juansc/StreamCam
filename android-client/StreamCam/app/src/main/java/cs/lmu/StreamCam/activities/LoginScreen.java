@@ -19,8 +19,13 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+
+import org.json.JSONObject;
+
+import java.util.HashMap;
 
 import cs.lmu.StreamCam.services.CustomDiagnostic;
 
@@ -33,6 +38,7 @@ public class LoginScreen extends AppCompatActivity {
     private EditText mUsernameText;
     private String mPasswordString;
     private EditText mPasswordText;
+    private RequestQueue mQueue;
 
     private final String TAG = "nothing";
     @Override
@@ -46,24 +52,7 @@ public class LoginScreen extends AppCompatActivity {
         mPasswordText = (EditText) findViewById(R.id.LOGIN_password_text);
         mHTTPResponse = (TextView) findViewById(R.id.LOGIN_HTTP_response);
 
-       /* RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://www.google.com";
-        // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        // Here's where we handle the response
-
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // This is what we do if it doesn't work.
-                    }
-        });
-        // Add the request to the RequestQueue.
-        queue.add(stringRequest);*/
+       mQueue = Volley.newRequestQueue(this);
     }
 
     public void goToCameraActivity(View view) {
@@ -78,7 +67,7 @@ public class LoginScreen extends AppCompatActivity {
     }
 
     public void loginButtonClicked(View view) {
-        mUsernameString = mUsernameText.getText().toString();
+        mUsernameString = mUsernameText.getText().toString().trim();
         mPasswordString = mPasswordText.getText().toString();
 
         CustomDiagnostic inputsDiagnostic = inputsAreValid();
@@ -113,5 +102,32 @@ public class LoginScreen extends AppCompatActivity {
 
     public void createLoginRequest() {
         Toast.makeText(getApplicationContext(),"Yay we can send stuff in!!!", Toast.LENGTH_SHORT).show();
+        String url = "http://192.168.0.19:3000/api/v1/users";
+
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.POST, url, createLoginJSONRequest(), new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.e(TAG,"We received a response");
+                        mHTTPResponse.setText("Response: " + response.toString());
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO Auto-generated method stub
+                        Log.e(TAG, "We haven't received anything");
+                    }
+                });
+
+        mQueue.add(jsObjRequest);
+    }
+
+    public JSONObject createLoginJSONRequest() {
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("user",mUsernameString);
+        params.put("password", mPasswordString);
+        return new JSONObject(params);
     }
 }
