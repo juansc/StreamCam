@@ -6,10 +6,22 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONObject;
+
+import java.util.HashMap;
 
 import cs.lmu.StreamCam.R;
 import cs.lmu.StreamCam.services.CustomDiagnostic;
@@ -23,6 +35,7 @@ public class CreateNewAccountActivity extends AppCompatActivity {
     private String mUsername;
     private String mPassword;
     private String mConfirmPassword;
+    private RequestQueue mQueue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +47,7 @@ public class CreateNewAccountActivity extends AppCompatActivity {
         mUsernameText = (EditText) findViewById(R.id.CREATE_ACCOUNT_username);
         mPasswordText = (EditText) findViewById(R.id.CREATE_ACCOUNT_password);
         mPasswordConfirmText = (EditText) findViewById(R.id.CREATE_ACCOUNT_confirm_password);
+        mQueue = Volley.newRequestQueue(this);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
@@ -58,7 +72,35 @@ public class CreateNewAccountActivity extends AppCompatActivity {
             return;
         }
 
-        goToCameraActivityFromCreateAccount();
+        makeNewUserRequest();
+
+    }
+
+    public void makeNewUserRequest() {
+        String url = "http://10.27.196.149:3000/api/v1/users";
+
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.POST, url, createNewUserJSONRequest(), new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        //
+                        try {
+                            int status = (int) response.get("status");
+                            handleResponse(status);
+                        } catch(org.json.JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO Auto-generated method stub
+                    }
+                });
+
+        mQueue.add(jsObjRequest);
     }
 
     public CustomDiagnostic inputsAreValid() {
@@ -80,6 +122,36 @@ public class CreateNewAccountActivity extends AppCompatActivity {
         }
 
         return new CustomDiagnostic(hasValidInputs, message);
+    }
+
+    public JSONObject createNewUserJSONRequest() {
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("user",mUsername);
+        params.put("password", mPassword);
+        return new JSONObject(params);
+    }
+
+    public void handleResponse(int status){
+        String message;
+        switch (status) {
+            case 200:
+                goToCameraActivityFromCreateAccount();
+                return;
+            case 409:
+                message = "That username is already taken.";
+                break;
+            default:
+                message = "Unknown error occurred";
+                break;
+
+        }
+
+        mUsernameText.setText("");
+        mPasswordText.setText("");
+        Toast.makeText(
+                getApplicationContext(),
+                message,
+                Toast.LENGTH_SHORT).show();
     }
 
 }

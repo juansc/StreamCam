@@ -55,7 +55,7 @@ public class LoginScreen extends AppCompatActivity {
        mQueue = Volley.newRequestQueue(this);
     }
 
-    public void goToCameraActivity(View view) {
+    public void goToCameraActivity() {
         Intent intent = new Intent(this, CameraActivity.class);
         startActivity(intent);
         finish();
@@ -71,6 +71,7 @@ public class LoginScreen extends AppCompatActivity {
         mPasswordString = mPasswordText.getText().toString();
 
         CustomDiagnostic inputsDiagnostic = inputsAreValid();
+
         if(!inputsDiagnostic.hasPassed()) {
             Toast.makeText(
                     getApplicationContext(),
@@ -101,23 +102,31 @@ public class LoginScreen extends AppCompatActivity {
     }
 
     public void createLoginRequest() {
-        Toast.makeText(getApplicationContext(),"Yay we can send stuff in!!!", Toast.LENGTH_SHORT).show();
-        String url = "http://192.168.0.19:3000/api/v1/users";
+        String url = "http://10.27.196.149:3000/api/v1/authenticate";
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.POST, url, createLoginJSONRequest(), new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.e(TAG,"We received a response");
+                        Log.e(TAG, "We received a response");
+                        try {
+                            int status = (int) response.get("status");
+                            handleResponse(status);
+                        } catch(org.json.JSONException e) {
+                            e.printStackTrace();
+                        }
                         mHTTPResponse.setText("Response: " + response.toString());
                     }
                 }, new Response.ErrorListener() {
-
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // TODO Auto-generated method stub
                         Log.e(TAG, "We haven't received anything");
+                        Toast.makeText(
+                                getApplicationContext(),
+                                "Unable to connect to server.",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -126,8 +135,31 @@ public class LoginScreen extends AppCompatActivity {
 
     public JSONObject createLoginJSONRequest() {
         HashMap<String, String> params = new HashMap<String, String>();
-        params.put("user",mUsernameString);
+        params.put("user", mUsernameString);
         params.put("password", mPasswordString);
         return new JSONObject(params);
+    }
+
+    public void handleResponse(int status){
+        String message;
+        switch (status) {
+            case 200:
+                goToCameraActivity();
+                return;
+            case 404:
+                message = "Invalid login credentials.";
+                break;
+            default:
+                message = "Unknown error occurred";
+                break;
+
+        }
+
+        mUsernameText.setText("");
+        mPasswordText.setText("");
+        Toast.makeText(
+                getApplicationContext(),
+                message,
+                Toast.LENGTH_SHORT).show();
     }
 }
