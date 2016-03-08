@@ -1,2 +1,6 @@
 node_modules/
 .env
+*.aux
+*.log
+*synctex.gz
+docs/Software\ Design\ Descriptions/*.out
