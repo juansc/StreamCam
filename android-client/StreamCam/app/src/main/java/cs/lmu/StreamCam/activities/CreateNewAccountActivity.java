@@ -37,6 +37,8 @@ public class CreateNewAccountActivity extends AppCompatActivity {
     private String mConfirmPassword;
     private RequestQueue mQueue;
 
+    private static final String TAG = CreateNewAccountActivity.class.getSimpleName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
