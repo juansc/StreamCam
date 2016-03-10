@@ -8,7 +8,7 @@
 % mathtools for: Aboxed (put box on last equation in align envirenment)
 \usepackage{microtype} %improves the spacing between words and letters
 
-\usepackage{graphicx}
+\usepackage{graphicx,float}
 \graphicspath{ {./pics/} {./eps/}}
 \usepackage{epsfig}
 \usepackage{epstopdf}
@@ -168,9 +168,37 @@ My system will use a simple three-tier architecture. It will constist of clients
 
 While this may change depending on what works best with the streaming library \textbf{libstreaming} that I am using, for now I consider a system where the Android phone serves as an RTP server that streams video to a VLC client on the side of the StreamCam server. 
 
-Below is a figure of the overall architecture.
+\subsubsection{Major Software Components}
+The major software components can be broken down into Android Client, Web Client, and Server. 
 
-\begin{figure}[h]
+\paragraph{Android Client\\}
+    The Android client is the most complex component. It consists of three to five activities or screens that the user will interact with directly, as well as internal logic which will handle creating requests as well as streaming video to the server.
+    
+    The activities will include a login screen, a create account screen, a camera screen, a settings screen, and possibly a video manager screen. The login screens and create account screens will be minimal, and will be the standard run of the mill login and create account screens. For now, StreamCam will not allow users to recover their accounts. This feature will be added if time permits. The Camera Screen is where the user will spend the majority of their time. It will present what the camera is capturing and will have a simple button to start and pause streaming. The settings screen will allow the users to manage their settings, such as whether or not they want the camera to remain on when they pause StreamCam(useful for recording while using another app such as a GPS). Finally, time permitting StreamCam will include a screen that will allow users to manage their videos.
+    
+    
+    The Android client will keep track of the user's location and send this information to the server. This feature is not enabled by default; the user must enable this feature. The Android client will have logic that will allow the phone to continue streaming video after an internet service interruption.
+    
+\paragraph{Web Client\\}
+	The web client is the simplest component. The web client will allow users to login or create an account. When a user logs in they will have a simple screen similar to the view of a standard file management system that will allow users to manage and download their stored videos. Each file will have information such as duration, the date the video was recorded, and a text file that provides the user's location during the duration of the video. If the user did not enable this feature, the location manifest will not be present. 
+	
+\paragraph{Server\\}
+    The server has moderate complexity. The server will handle all client requests from Android and Web Clients and interact with the database to give users the information they require. 
+    
+\subsubsection{Major Software Interactions}
+
+\paragraph{User Login and Creating New Accounts\\}
+This interaction is between the Android Client or the Web Client and the server. During this interaction the user will either create a new account or provide credentials for an existing account. After doing either successfully the user will receive a token that will allow them to perform other actions.
+
+\paragraph{Streaming\\}
+I'm still trying to figure out how to implement this.
+
+\paragraph{Viewing User Videos\\}
+The web client will be able to make requests to the StreamCam server to view all the users videos. It will receive a list of videos with basic information such as duration, date the video was recorded, and a link to download the video. The user will also have the ability to delete videos that they have recorded.
+
+\subsubsection{Architectural Design Diagrams}
+
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{img/architecture.png}
   \caption{Figure of Architecture}
@@ -178,29 +206,132 @@ Below is a figure of the overall architecture.
 
 Below is a figure that explains the streaming architecture.
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \includegraphics[width=5in]{img/streaming-architecture.png}
   \caption{Figure of Architecture}
 \end{figure}
 
-\subsubsection{Major Software Components}
-The major software components 
-\subsubsection{Major Software Interactions}
-\subsubsection{Architectural Design Diagrams}
-\subsection{CSC and CSU Descriptions}
-\subsubsection{Class Descriptions}
-\paragraph{Class Description 1}
-\paragraph{Class Description 2}
-\paragraph{Class Description n}
-\subsubsection{Detailed Interface Descriptions}
-\subsubsection{Detailed Data Structure Descriptions}
-\subsubsection{Detailed Design Diagrams}
-\subsection{Database Design and Description}
-\subsubsection{Database Design ER Diagram}
-\subsubsection{Database Access}
-\subsubsection{Database Security}
+Below is a use case diagram for streaming.
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=5in]{img/uml_streaming.png}
+  \caption{Figure of Architecture}
+\end{figure}
+
+Below is a UML diagram of classes used for the Android Client.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=5in]{img/android_classes}
+  \caption{Figure of Architecture}
+\end{figure}
+
+
+
+\subsection{CSC and CSU Descriptions}
+I have server side code, Android client code, and web client code. The most complex is the Android client.  Android screens are classes called activities. Each of these has code that contains the functionality for the screen that the user will interact with at that particular part of the phone app. All of them inherit methods from the Activity class. The Activity class has basic methods such as onCreate, onPause, and onEnd that specify what is done when a particular screen is created, paused, or destroyed. I will focus on the functionality of each screen.
+
+\subsubsection{Class Descriptions}
+The following are class descriptions for the Android client.
+\paragraph{Login Activity\\}
+The login activity is a simply screen with text fields for users to enter their username and password. It also has two buttons: one for login in and the other to go to the Create Account Screen. The Login Screen has very few fields and methods.
+\\
+
+\textbf{FIELDS}
+\begin{enumerate}
+  \item mUsername - (String) Stores the provided username.
+  \item mUsernameTextView - (TextView) A reference to the input field where the user provides their username.
+  \item mPassword - (String) Stores the provided password.
+  \item mPasswordTextView - (TextView) A reference to the input field where the user provides their password.
+\end{enumerate}
+
+\textbf{METHODS}
+\begin{enumerate}
+  \item onCreate - void. Setups the activity.
+  \item onLoginButtonClicked - void. Handles logic for when login button is clicked.
+  \item goToCameraActivity - void. Used to go to the Camera Activity.
+  \item goToCreateAccountActivity - void. User to go to the Create Account Activity.
+  \item handleHTTPResponse - void. Handles HTTP response from server.
+\end{enumerate}
+
+\paragraph{Create Account Activity\\}
+This activity is a simply screen with text fields for users to enter their username and password. It also has one button that is used to submit data to create a new account. There are three textfields, one for a user name and two for the password. The second textfield is used to confirm the user's password.
+\\
+
+\textbf{FIELDS}
+\begin{enumerate}
+  \item mUsername - (String) Stores the provided username.
+  \item mUsernameTextView - (TextView) A reference to the input field where the user provides their username.
+  \item mPassword - (String) Stores the provided password.
+  \item mPasswordTextView - (TextView) A reference to the input field where the user provides their password.
+  \item mPasswordConfirm - (String) Stores the provided confirm password.
+  \item mPasswordConfirmTextView - (TextView) A reference to the input field where the user provides their confirm password.
+\end{enumerate}
+
+\textbf{METHODS}
+\begin{enumerate}
+  \item onCreate - void. Setups the activity.
+  \item onCreateAccountButtonClicked - void. Handles logic for when login button is clicked.
+  \item goToCameraActivity - void. Used to go to the Camera Activity.
+  \item handleHTTPResponse - void. Handles HTTP response from server.
+\end{enumerate}
+
+\paragraph{Camera Activity\\}
+This activity is the most complex. It is not yet fully implemented. It has the necessary code to show the camera screen and retrieve the user's current location.
+
+The following are class descriptions for server.
+
+\paragraph{server.coffee\\}
+This class is the server that the Android client will communicate with. This class will not have any logic, rather, it will set up the routes for the API. 
+
+\paragraph{login.coffee\\}
+This class has the logic for login in and creating new users. It has just two methods, loginUser and createNewUser. Both of these return a JSON response that will be parsed by the JSON client.
+
+\textbf{METHODS}
+\begin{enumerate}
+  \item loginUser - Takes in an HTTP request variable. Returns an HTTP response. It checks that the login credentials provided in the request body are valid, and if so provides the user with a web token.
+  \item createNewUser - Takes in an HTTP request variable. Returns an HTTP response. It checks that the username provided by the user is available, and if so creates an account and returns a web token with the response.
+\end{enumerate}
+
+\paragraph{token.coffee\\}
+This class stores the JSON web tokens that are created to authenticate users. It has two methods, createToken and decodeToken. While this functionality could be included in some other class, it makes sense to separate the tokens in their own class for separation of concerns.
+
+\textbf{METHODS}
+\begin{enumerate}
+  \item createToken - Takes in a username. Returns a web token. 
+  \item decodeToken - Takes in a web token. Returns a decoded web token for the use of the server to authenticate the user.
+\end{enumerate}
+
+\paragraph{manifest.coffee\\}
+This class has the logic that deals with the video manifest. It has code for appending to the manifest in the database, creating a string representation of the manifest, and returning manifests for a particular video. Not implemented completely.
+
+\paragraph{stream.coffee\\}
+This class has the logic for creating threads to listen to users' streams. No idea how to do this yet.
+
+
+\subsubsection{Detailed Interface Descriptions}
+The interfaces for my project are my server and the middleware routes.
+\subsubsection{Detailed Data Structure Descriptions}
+The manifest, which is not fully implemented, is a linked list. Since we will constantly be appending to the manifest, I chose a linked list because we avoid having to resize the array. The manifest will have a pointer to the current location. This allows us to keep track of which location has been sent to the server so we can send locations in chronological order. 
+\subsubsection{Detailed Design Diagrams}
+Please refer to architecture section for diagrams.
+\subsection{Database Design and Description}
+The database contains information about users and their videos. It stores user credentials, information about videos, including duration, date, and a manifest with the user's location at the time the video was made.
+
+There is a one-to-many correspondence between users and videos. Each user can have many videos, and a video is owned by a single user. There is a one-to-one correspondence between a video and a manifest. Each video has a single manifest, and a manifest belongs to a single video.
+
+\subsubsection{Database Design ER Diagram}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=5in]{img/erd.png}
+  \caption{Figure of Architecture}
+\end{figure}
+\subsubsection{Database Access}
+As of now only the server is the sole user of the database. 
+\subsubsection{Database Security}
+As of now only the server is the sole user of the database. I will have to provide additional security features later.
 %%%%% SDD ENDS HERE
 \section{Notes}
 \section{Acronyms and Abbreviations}
