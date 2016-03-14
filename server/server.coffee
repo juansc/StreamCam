@@ -2,8 +2,8 @@ express = require 'express'
 app = express()
 bodyParser = require 'body-parser'
 db_client = require '../database/database_client'
-token = require '../utils/token'
 login = require '../utils/login'
+jwt = require 'jwt-simple'
 
 app.use bodyParser.urlencoded {extended: true}
 app.use bodyParser.json()
@@ -32,6 +32,18 @@ app.post '/api/v1/users', login.createNewUser
 app.all '/api/v1/users', methodNotAllowed
 
 app.post '/api/v1/authenticate', login.authenticateUser
+
+app.put '/api/v1/manifest/:video_id', (req, res) ->
+  console.log req
+  user_token = req.body.access_token
+  if user_token
+    try
+      # ...
+      decoded = jwt.decode user_token, process.env.JWT_STRING
+      console.log decoded
+    catch err
+      # ...
+
 
 
 

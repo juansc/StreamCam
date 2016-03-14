@@ -1,4 +1,5 @@
 db_client = require '../database/database_client'
+token = require '../utils/token'
 
 exports.authenticateUser = (req, res) ->
   data = req.body
@@ -23,7 +24,7 @@ exports.authenticateUser = (req, res) ->
       return res.json
         status: 200
         message: "Authentication succeeded."
-        token: token.generateToken username
+        token: token.generateToken data.user
     else
       return res.json
         status: 404
@@ -35,7 +36,6 @@ exports.createNewUser = (req, res) ->
   password = data.password
 
   #console.log "Username is #{username} and password #{password}"
-
   if password.length < 8
     return res.status(400).json
       status: 400
