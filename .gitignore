@@ -4,3 +4,5 @@ node_modules/
 *.log
 *synctex.gz
 docs/Software\ Design\ Descriptions/*.out
+database/create_db.sql
+database/fill_db.sql
