@@ -26,7 +26,7 @@ exports.authenticateUser = (req, res) ->
         message: "Authentication succeeded."
         token: token.generateToken data.user
     else
-      return res.json
+      return res.status(404).json
         status: 404
         message: "Account not found."
 
