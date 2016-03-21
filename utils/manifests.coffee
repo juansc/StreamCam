@@ -2,19 +2,23 @@ db_client = require '../database/database_client'
 token = require '../utils/token'
 
 exports.appendToVideoManifest = (req, res) ->
-  user_token = req.body or req.headers['x-access-token'] if req
+  user_token = req.body.token or req.headers['x-access-token'] if req
+  unless user_token
+    return res.status(403).json
+      status: 403
+      message: "Forbidden action"
+
   decoded = token.decodeToken user_token
   unless decoded
-    return res.status(500).json
-      status: 500
-      message: "Server Error"
+    return res.status(400).json
+      status: 400
+      message: "Invalid token"
 
   unless req.body.JSONlocation
     return res.status(400).json
       status: 400
       message: "No location included"
 
-  video_id = req.params.video_id
   try
     location = JSON.parse req.body.JSONlocation
   catch e
@@ -22,6 +26,7 @@ exports.appendToVideoManifest = (req, res) ->
       status: 400
       message: "Could not parse location."
 
+  video_id = req.params.video_id
   # First we check that the video
   # exists and belongs to the requester
   db_client.query
