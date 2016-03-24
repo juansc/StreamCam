@@ -7,28 +7,45 @@ exports.authenticateUser = (req, res) ->
     return res.status(400).json
       status: 400
       message: "Please provide a username and password"
+  # Check that the user exists
   db_client.query
     text: "SELECT EXISTS(
            SELECT 1 FROM users
            WHERE username=$1
-           AND
-           password=crypt($2, password)
            )"
-    values: [data.user, data.password]
+    values: [data.user]
   , (err, result) ->
     if err
-      return res.json
+      return res.status(500).json
         status: 500
         message: "Server Error"
-    if result.rows[0].exists
-      return res.json
-        status: 200
-        message: "Authentication succeeded."
-        token: token.generateToken data.user
-    else
+    if not result.rows[0].exists
       return res.status(404).json
         status: 404
-        message: "Account not found."
+        message: "Username not found"
+    else
+      db_client.query
+        text: "SELECT EXISTS(
+               SELECT 1 FROM users
+               WHERE username=$1
+               AND
+               password=crypt($2, password)
+               )"
+        values: [data.user, data.password]
+      , (err, result) ->
+        if err
+          return res.json
+            status: 500
+            message: "Server Error"
+        if result.rows[0].exists
+          return res.json
+            status: 200
+            message: "Authentication succeeded."
+            token: token.generateToken data.user
+        else
+          return res.status(401).json
+            status: 401
+            message: "Incorrect password."
 
 exports.createNewUser = (req, res) ->
   data = req.body

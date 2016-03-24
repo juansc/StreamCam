@@ -28,7 +28,6 @@ app.get '/', (req, res) ->
   res.status(200).json
     status: 200
     message: "hooray! Welcome to our api!"
-  console.log "Someone hit the api"
 
 app.post '/api/v1/users', login.createNewUser
 app.all '/api/v1/users', methodNotAllowed
@@ -37,18 +36,10 @@ app.post '/api/v1/authenticate', login.authenticateUser
 app.all '/api/v1/authenticate', methodNotAllowed
 
 app.post '/api/v1/videos', videos.createVideo
+app.get '/api/v1/videos/:user', videos.getUserVideos
 app.all '/api/v1/videos', methodNotAllowed
 
-app.put '/api/v1/manifest/:video_id', (req, res) ->
-  console.log req
-  user_token = req.body.access_token
-  if user_token
-    try
-      # ...
-      decoded = jwt.decode user_token, process.env.JWT_STRING
-      console.log decoded
-    catch err
-      # ...
+app.put '/api/v1/manifest/:video_id', videos.appendManifestToVideo
 
 app.listen port
 console.log "Magic happens on port #{port}"
