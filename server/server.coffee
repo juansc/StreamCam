@@ -11,7 +11,7 @@ videos = require '../utils/videos'
 app.use bodyParser.urlencoded {extended: true}
 app.use bodyParser.json()
 
-console.log process.env.JWT_STRING
+console.log process.env.PORT
 
 port = process.env.PORT || 3000
 
