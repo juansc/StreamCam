@@ -79,7 +79,7 @@ public class CreateNewAccountActivity extends AppCompatActivity {
     }
 
     public void makeNewUserRequest() {
-        String url = "http://10.27.196.149:3000/api/v1/users";
+        String url = "https://stream-cam.herokuapp.com/api/v1/users";
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.POST, url, createNewUserJSONRequest(), new Response.Listener<JSONObject>() {

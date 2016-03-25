@@ -97,7 +97,7 @@ public class LoginScreen extends AppCompatActivity {
     }
 
     public void createLoginRequest() {
-        String url = "http://10.27.196.149:3000/api/v1/authenticate";
+        String url = "https://stream-cam.herokuapp.com/api/v1/authenticate";
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.POST, url, createLoginJSONRequest(), new Response.Listener<JSONObject>() {
@@ -141,8 +141,11 @@ public class LoginScreen extends AppCompatActivity {
             case 200:
                 goToCameraActivity();
                 return;
+            case 401:
+                message = "Incorrect password";
+                break;
             case 404:
-                message = "Invalid login credentials.";
+                message = "Username does not exist.";
                 break;
             default:
                 message = "Unknown error occurred";
