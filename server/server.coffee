@@ -11,8 +11,6 @@ videos = require '../utils/videos'
 app.use bodyParser.urlencoded {extended: true}
 app.use bodyParser.json()
 
-console.log process.env
-
 port = process.env.PORT || 3000
 
 router = express.Router()
@@ -42,7 +40,5 @@ app.get '/api/v1/videos/:user', videos.getUserVideos
 app.all '/api/v1/videos', methodNotAllowed
 
 app.put '/api/v1/manifest/:video_id', videos.appendManifestToVideo
-
-console.log 'This much is fine!!!'
 
 console.log "Magic happens on port #{port}"
