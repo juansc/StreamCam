@@ -41,8 +41,6 @@ app.all '/api/v1/videos', methodNotAllowed
 
 app.put '/api/v1/manifest/:video_id', videos.appendManifestToVideo
 
-console.log 'This much is fine!!!'
-
 app.listen port
 
-console.log "Magic happens on port #{port}"
+console.log "Currently using #{port}"
