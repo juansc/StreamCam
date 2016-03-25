@@ -133,6 +133,5 @@ exports.getUserVideos = (req, res) ->
       return res.status(500).json
         status: 500
         message: "Server Error"
-    console.log result.rows
     res.status(200).json
       user_videos: result.rows
