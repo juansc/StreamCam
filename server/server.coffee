@@ -11,6 +11,8 @@ videos = require '../utils/videos'
 app.use bodyParser.urlencoded {extended: true}
 app.use bodyParser.json()
 
+console.log process.env.JWT_STRING
+
 port = process.env.PORT || 3000
 
 router = express.Router()
