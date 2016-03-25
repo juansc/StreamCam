@@ -45,5 +45,4 @@ app.put '/api/v1/manifest/:video_id', videos.appendManifestToVideo
 
 console.log 'This much is fine!!!'
 
-app.listen port
 console.log "Magic happens on port #{port}"
