@@ -345,6 +345,10 @@ public class CameraActivity extends AppCompatActivity
         }
     }
 
+    public void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+    }
+
     protected void startAddressIntentService() {
         Intent intent = new Intent(this, FetchAddressIntentService.class);
         intent.putExtra(Constants.RECEIVER, mResultReceiver);

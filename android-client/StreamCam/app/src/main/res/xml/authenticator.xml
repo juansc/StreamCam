@@ -1,0 +1,3 @@
+<account-authenticator
+    android:accountType="streamcam.com"
+    xmlns:android="http://schemas.android.com/apk/res/android" />

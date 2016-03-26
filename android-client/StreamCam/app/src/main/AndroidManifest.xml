@@ -53,6 +53,21 @@
             android:name=".services.FetchAddressIntentService"
             android:exported="false"/>
 
+
+
+        <service
+            android:name=".services.AuthenticatorService">
+            <!-- The intent filter specifies that the service will only respond
+             if triggered by AccountAuthenticator-->
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
+        </service>
+
+
     </application>
 
 </manifest>
