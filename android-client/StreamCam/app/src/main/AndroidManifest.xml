@@ -67,6 +67,12 @@
                 android:resource="@xml/authenticator" />
         </service>
 
+        <provider
+            android:authorities="cs.lmu.StreamCam.provider"
+            android:name=".services.StubProvider"
+            android:exported="false"
+            android:syncable="true"/>
+
 
     </application>
 
