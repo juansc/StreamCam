@@ -4,6 +4,8 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
+import cs.lmu.StreamCam.Utils.Authenticator;
+
 /**
  * Created by juanscarrillo on 3/26/16.
  */

@@ -20,7 +20,8 @@
         android:src="@android:drawable/ic_menu_camera"
         android:background="#00ffffff"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:onClick="recordButtonHit" />
 
     <TextView
         android:layout_width="wrap_content"

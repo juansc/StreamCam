@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 
 import cs.lmu.StreamCam.R;
+import cs.lmu.StreamCam.Utils.Constants;
 
 /**
  * Created by juanscarrillo on 2/17/16.

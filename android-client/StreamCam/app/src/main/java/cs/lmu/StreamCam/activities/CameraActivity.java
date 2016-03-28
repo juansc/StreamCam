@@ -35,7 +35,8 @@ import java.util.List;
 
 
 import cs.lmu.StreamCam.R;
-import cs.lmu.StreamCam.services.TravelLog;
+import cs.lmu.StreamCam.services.LocationService;
+import cs.lmu.StreamCam.Utils.TravelLog;
 
 public class CameraActivity extends AppCompatActivity {
     private static final String TAG = CameraActivity.class.getSimpleName();
@@ -145,8 +146,7 @@ public class CameraActivity extends AppCompatActivity {
         mLongitudeTextView = (TextView) findViewById(R.id.longitudeValue);
         mAddressTextView = (TextView) findViewById(R.id.addressValue);
 
-        Intent intent = new Intent(this, LocationService.class);
-        startService(intent);
+        updateLocationDisplay(null, null);
 
     }
 
@@ -361,8 +361,15 @@ public class CameraActivity extends AppCompatActivity {
 
     }
 
-    public boolean isStreaming() {
-        return this.isStreaming;
+    public void recordButtonHit(View view) {
+        Intent intent = new Intent(this, LocationService.class);
+        if(isStreaming){
+            stopService(intent);
+            updateLocationDisplay(null, null);
+        } else {
+            startService(intent);
+        }
+        isStreaming = !isStreaming;
     }
 
 

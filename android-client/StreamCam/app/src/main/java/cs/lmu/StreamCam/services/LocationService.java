@@ -1,8 +1,7 @@
-package cs.lmu.StreamCam.activities;
+package cs.lmu.StreamCam.services;
 
 import android.app.Service;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
@@ -15,23 +14,16 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 import java.text.DateFormat;
 import java.util.Date;
 
 import cs.lmu.StreamCam.R;
-import cs.lmu.StreamCam.services.Constants;
-import cs.lmu.StreamCam.services.FetchAddressIntentService;
-import cs.lmu.StreamCam.services.TravelLog;
+import cs.lmu.StreamCam.Utils.Constants;
+import cs.lmu.StreamCam.Utils.TravelLog;
 
 /**
  * Created by juanscarrillo on 3/27/16.

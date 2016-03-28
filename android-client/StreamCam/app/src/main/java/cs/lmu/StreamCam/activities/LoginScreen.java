@@ -1,6 +1,8 @@
 package cs.lmu.StreamCam.activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -17,11 +19,12 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
 
-import cs.lmu.StreamCam.services.CustomDiagnostic;
+import cs.lmu.StreamCam.Utils.CustomDiagnostic;
 
 import cs.lmu.StreamCam.R;
 
@@ -33,6 +36,7 @@ public class LoginScreen extends AppCompatActivity {
     private String mPasswordString;
     private EditText mPasswordText;
     private RequestQueue mQueue;
+    private SharedPreferences mPrefs;
 
     private final String TAG = LoginScreen.class.getSimpleName();
 
@@ -47,7 +51,8 @@ public class LoginScreen extends AppCompatActivity {
         mPasswordText = (EditText) findViewById(R.id.LOGIN_password_text);
         mHTTPResponse = (TextView) findViewById(R.id.LOGIN_HTTP_response);
 
-       mQueue = Volley.newRequestQueue(this);
+        mQueue = Volley.newRequestQueue(this);
+        SharedPreferences mPrefs = this.getSharedPreferences("cs.lmu.StreamCam", Context.MODE_PRIVATE);
     }
 
     public void goToCameraActivity() {
@@ -105,13 +110,7 @@ public class LoginScreen extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         Log.e(TAG, "We received a response");
-                        try {
-                            int status = (int) response.get("status");
-                            handleResponse(status);
-                        } catch(org.json.JSONException e) {
-                            e.printStackTrace();
-                        }
-                        mHTTPResponse.setText("Response: " + response.toString());
+                        handleResponse(response);
                     }
                 }, new Response.ErrorListener() {
                     @Override
@@ -128,19 +127,34 @@ public class LoginScreen extends AppCompatActivity {
         mQueue.add(jsObjRequest);
     }
 
-    public JSONObject createLoginJSONRequest() {
+    private JSONObject createLoginJSONRequest() {
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("user", mUsernameString);
         params.put("password", mPasswordString);
         return new JSONObject(params);
     }
 
-    public void handleResponse(int status){
+    public void handleResponse(JSONObject response){
+        int status = 0;
+
+        try {
+            status = (int) response.get("status");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
         String message;
         switch (status) {
             case 200:
-                goToCameraActivity();
-                return;
+                try {
+                    String token = (String) response.get("token");
+                    mPrefs.edit().putString("userToken", token).apply();
+                    goToCameraActivity();
+                    return;
+                } catch (JSONException e){
+                    message = "No token given.";
+                }
+                break;
             case 401:
                 message = "Incorrect password";
                 break;

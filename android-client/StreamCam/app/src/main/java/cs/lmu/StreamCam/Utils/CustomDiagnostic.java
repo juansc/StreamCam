@@ -1,4 +1,4 @@
-package cs.lmu.StreamCam.services;
+package cs.lmu.StreamCam.Utils;
 
 /**
  * Created by juanscarrillo on 3/4/16.

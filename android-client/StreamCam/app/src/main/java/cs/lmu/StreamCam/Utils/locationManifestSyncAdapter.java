@@ -1,4 +1,4 @@
-package cs.lmu.StreamCam.services;
+package cs.lmu.StreamCam.Utils;
 
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
