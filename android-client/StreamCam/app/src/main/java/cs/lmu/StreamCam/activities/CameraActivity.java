@@ -1,8 +1,9 @@
 package cs.lmu.StreamCam.activities;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
+import android.content.IntentFilter;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -11,10 +12,9 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.HandlerThread;
-import android.os.ResultReceiver;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
@@ -27,51 +27,27 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 import cs.lmu.StreamCam.R;
-import cs.lmu.StreamCam.services.Constants;
-import cs.lmu.StreamCam.services.FetchAddressIntentService;
 import cs.lmu.StreamCam.services.TravelLog;
 
-public class CameraActivity extends AppCompatActivity
-             implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
-
+public class CameraActivity extends AppCompatActivity {
     private static final String TAG = CameraActivity.class.getSimpleName();
 
     private String mCameraID;
     private Size mPreviewSize;
-    private GoogleApiClient mGoogleApiClient;
-    private Location mLastLocation;
     private TextView mLatitudeTextView;
     private TextView mLongitudeTextView;
     private TextView mAddressTextView;
-    private String mCurrentAddress;
-    private boolean mRequestingLocationUpdates;
-    private LocationRequest mLocationRequest;
-    private Location mCurrentLocation;
-    private String mLastUpdateTime;
-    private AddressResultReceiver mResultReceiver;
-    private boolean mAddressRequested;
     private TravelLog mTravelLog;
+    private boolean isStreaming;
+    private BroadcastReceiver mLocationMessageReceiver;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -156,18 +132,7 @@ public class CameraActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .build();
-        }
-
-        mGoogleApiClient.connect();
-        mRequestingLocationUpdates = true;
-        mAddressRequested = true;
-        mResultReceiver = new AddressResultReceiver(new Handler());
+        setupLocationMessageReceiver();
 
         mTravelLog = new TravelLog();
 
@@ -180,16 +145,23 @@ public class CameraActivity extends AppCompatActivity
         mLongitudeTextView = (TextView) findViewById(R.id.longitudeValue);
         mAddressTextView = (TextView) findViewById(R.id.addressValue);
 
-    }
-
-    @Override
-    public void onConnectionSuspended(int x ){
+        Intent intent = new Intent(this, LocationService.class);
+        startService(intent);
 
     }
 
-    @Override
-    public void onConnectionFailed(ConnectionResult x) {
+    private void setupLocationMessageReceiver() {
+        mLocationMessageReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Location location = intent.getParcelableExtra("location");
+                String address = intent.getStringExtra("address");
+                updateLocationDisplay(location, address);
+            }
+        };
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mLocationMessageReceiver, new IntentFilter("processedLocation"));
     }
 
     @Override
@@ -209,7 +181,6 @@ public class CameraActivity extends AppCompatActivity
     @Override
     public void onResume() {
         super.onResume();
-        mGoogleApiClient.connect();
         openBackgroundThread();;
         if(mTextureView.isAvailable()){
             setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
@@ -223,138 +194,28 @@ public class CameraActivity extends AppCompatActivity
     public void onPause() {
         closeCamera();
         closeBackgroundThread();
-        mGoogleApiClient.disconnect();
 
         super.onPause();
     }
 
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        setupLocationRequests();
-        mLastLocation = getUserLocation();
-        mCurrentLocation = mLastLocation;
-        updateLocationDisplay(mLastLocation);
+    public void updateLocationDisplay(Location location, String address) {
+        String longitudeString = "Unavailable";
+        String latitudeString = "Unavailable";
+        String addressString = "Unavailable";
 
-        if(mRequestingLocationUpdates) {
-            startLocationUpdates();
+        if(location != null) {
+            longitudeString = String.valueOf(location.getLatitude());
+            latitudeString = String.valueOf(location.getLongitude());
+        }
+        if(address != null) {
+            addressString = address;
         }
 
-        if(mLastLocation != null) {
-            if(!Geocoder.isPresent()) {
-                Toast.makeText(this,R.string.ADDRESS_SERVICES_no_geocoder_available,
-                        Toast.LENGTH_LONG).show();
-                return;
-            }
-            if(mAddressRequested) {
-                startAddressIntentService();
-            }
-        }
+        mLatitudeTextView.setText(latitudeString);
+        mLongitudeTextView.setText(longitudeString);
+        mAddressTextView.setText(addressString);
 
-
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        mCurrentLocation = location;
-        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-        updateLocationDisplay(mCurrentLocation);
-        Log.e(TAG, "Location updated!");
-    }
-
-    public void updateLocationDisplay(Location currentLocation) {
-        String longitude = "Unavailable";
-        String latitude = "Unavailable";
-
-        if (currentLocation != null) {
-            longitude = String.valueOf(currentLocation.getLatitude());
-            latitude = String.valueOf(currentLocation.getLongitude());
-        }
-
-        mLatitudeTextView.setText(latitude);
-        mLongitudeTextView.setText(longitude);
-
-        if(mAddressRequested) {
-            startAddressIntentService();
-        }
-
-    }
-
-    public void appendToTravelLog() {
-        mTravelLog.add(mCurrentLocation, mCurrentAddress);
-    }
-
-    public void updateAddressDisplay(String address) {
         Log.e(TAG, "The address has been set in TextView");
-        mAddressTextView.setText(address);
-    }
-
-    public void setupLocationRequests() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(mLocationRequest);
-
-        final PendingResult<LocationSettingsResult> result =
-                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,
-                        builder.build());
-
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(LocationSettingsResult locationSettingsResult) {
-
-                final int REQUEST_CHECK_SETTINGS = 0x1;
-
-                final Status status = locationSettingsResult.getStatus();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        try {
-                            status.startResolutionForResult(CameraActivity.this, REQUEST_CHECK_SETTINGS);
-                        } catch (IntentSender.SendIntentException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        break;
-                }
-            }
-        });
-    }
-
-    public Location getUserLocation() {
-        Location currentLocation = null;
-
-        try {
-            currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        } catch(SecurityException e) {
-            Log.e(TAG, "Unable to acquire location.");
-        }
-
-        return currentLocation;
-    }
-
-    public void startLocationUpdates() {
-        try {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        } catch(SecurityException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-    }
-
-    protected void startAddressIntentService() {
-        Intent intent = new Intent(this, FetchAddressIntentService.class);
-        intent.putExtra(Constants.RECEIVER, mResultReceiver);
-        intent.putExtra(Constants.LOCATION_DATA_EXTRA, mCurrentLocation);
-        startService(intent);
-        Log.e(TAG, "Called the intent!!!");
     }
 
     private void setupCamera(int width, int height) {
@@ -500,27 +361,8 @@ public class CameraActivity extends AppCompatActivity
 
     }
 
-
-    class AddressResultReceiver extends ResultReceiver {
-        public AddressResultReceiver(Handler handler) {
-            super(handler);
-        }
-
-        @Override
-        protected void onReceiveResult(int resultCode, Bundle resultData) {
-            String mAddressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
-            mCurrentAddress = mAddressOutput;
-            updateAddressDisplay(mAddressOutput);
-
-            appendToTravelLog();
-
-            if(resultCode == Constants.SUCCESS_RESULT) {
-                Log.e(TAG, "Found an address");
-
-            } else{
-                Log.e(TAG,"Failed to find address");
-            }
-        }
+    public boolean isStreaming() {
+        return this.isStreaming;
     }
 
 
