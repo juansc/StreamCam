@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -52,7 +53,8 @@ public class LoginScreen extends AppCompatActivity {
         mHTTPResponse = (TextView) findViewById(R.id.LOGIN_HTTP_response);
 
         mQueue = Volley.newRequestQueue(this);
-        mPrefs = this.getSharedPreferences("cs.lmu.StreamCam", Context.MODE_PRIVATE);
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
     }
 
     public void goToCameraActivity() {
@@ -148,6 +150,7 @@ public class LoginScreen extends AppCompatActivity {
             case 200:
                 try {
                     String token = (String) response.get("token");
+                    Log.e(TAG, "We got a token which is " + token);
                     mPrefs.edit().putString("userToken", token).apply();
                     goToCameraActivity();
                     return;
