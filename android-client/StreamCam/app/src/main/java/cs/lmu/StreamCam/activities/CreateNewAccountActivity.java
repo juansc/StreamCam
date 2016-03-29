@@ -1,6 +1,8 @@
 package cs.lmu.StreamCam.activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -15,6 +17,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -31,6 +34,7 @@ public class CreateNewAccountActivity extends AppCompatActivity {
     private String mUsername;
     private String mPassword;
     private String mConfirmPassword;
+    private SharedPreferences mPrefs;
     private RequestQueue mQueue;
 
     private static final String TAG = CreateNewAccountActivity.class.getSimpleName();
@@ -48,6 +52,7 @@ public class CreateNewAccountActivity extends AppCompatActivity {
         mQueue = Volley.newRequestQueue(this);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        mPrefs = this.getSharedPreferences("cs.lmu.StreamCam", Context.MODE_PRIVATE);
     }
 
     public void goToCameraActivityFromCreateAccount() {
@@ -83,12 +88,7 @@ public class CreateNewAccountActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         //
-                        try {
-                            int status = (int) response.get("status");
-                            handleResponse(status);
-                        } catch(org.json.JSONException e) {
-                            e.printStackTrace();
-                        }
+                        handleResponse(response);
                     }
                 }, new Response.ErrorListener() {
 
@@ -129,12 +129,27 @@ public class CreateNewAccountActivity extends AppCompatActivity {
         return new JSONObject(params);
     }
 
-    public void handleResponse(int status){
+    public void handleResponse(JSONObject response){
+        int status = 0;
         String message;
+
+        try{
+            status = (int) response.get("status");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
         switch (status) {
             case 200:
-                goToCameraActivityFromCreateAccount();
-                return;
+                try {
+                    String token = (String) response.get("token");
+                    mPrefs.edit().putString("userToken", token).apply();
+                    goToCameraActivityFromCreateAccount();
+                    return;
+                } catch (JSONException e){
+                    message = "No token given.";
+                }
+                break;
             case 409:
                 message = "That username is already taken.";
                 break;

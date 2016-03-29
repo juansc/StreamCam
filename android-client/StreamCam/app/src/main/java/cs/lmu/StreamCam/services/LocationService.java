@@ -41,9 +41,8 @@ public class LocationService extends Service implements
     private AddressResultReceiver mResultReceiver;
     private String mLastUpdateTime;
     private String mCurrentAddress;
-    private TravelLog mTravelLog;
     private LocalBroadcastManager mBroadcaster;
-
+    private int mVideoID;
     private float minimumDistanceBetweenLocations = 20;
 
     private static final String TAG = LocationService.class.getSimpleName();
@@ -222,6 +221,7 @@ public class LocationService extends Service implements
             mCurrentAddress = mAddressOutput;
 
             sendLocationToActivity();
+            postLocationToServer();
 
             if(resultCode == Constants.SUCCESS_RESULT) {
                 Log.e(TAG, "Found an address");
@@ -240,4 +240,10 @@ public class LocationService extends Service implements
         Log.e(TAG, "We have sent the location!");
     }
 
+    private void postLocationToServer() {
+        Intent intent = new Intent("sendLocation");
+        intent.putExtra("location", mCurrentLocation);
+        intent.putExtra("address", mCurrentAddress);
+        intent.putExtra("videoID", mVideoID);
+    }
 }

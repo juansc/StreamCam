@@ -1,5 +1,6 @@
 token = require '../utils/token'
 db_client = require '../database/database_client'
+moment = require 'moment'
 
 exports.createVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
@@ -15,7 +16,9 @@ exports.createVideo = (req, res) ->
       message: "Invalid token."
 
   user = decoded.user
-  video_timestamp = req.body.video_timestamp
+  video_timestamp = req.body.video_timestamp if req.body.video_timestamp
+  unless video_timestamp
+    video_timestamp = moment().format()
 
   db_client.query
     text: "WITH new_video_id AS (

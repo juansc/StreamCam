@@ -18,10 +18,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
+import cs.lmu.StreamCam.Utils.Timestamp;
 
 /**
  * Created by juanscarrillo on 3/28/16.
@@ -46,7 +43,7 @@ public class LocationPostService extends IntentService {
         String address = intent.getStringExtra("address");
         int videoID = intent.getIntExtra("videoID", 0);
         String token = getToken();
-        String timestamp = getCurrentTimestamp();
+        String timestamp = Timestamp.getTimestamp();
 
         JSONObject postRequest = createJSONPostRequest(location, address, timestamp, token);
 
@@ -77,15 +74,6 @@ public class LocationPostService extends IntentService {
                 });
 
         mQueue.add(jsObjRequest);
-    }
-
-    private String getCurrentTimestamp() {
-        TimeZone tz = TimeZone.getTimeZone("UTC");
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
-        df.setTimeZone(tz);
-        String timestamp = df.format(new Date());
-
-        return timestamp;
     }
 
     private String getToken() {

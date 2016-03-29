@@ -52,7 +52,7 @@ public class LoginScreen extends AppCompatActivity {
         mHTTPResponse = (TextView) findViewById(R.id.LOGIN_HTTP_response);
 
         mQueue = Volley.newRequestQueue(this);
-        SharedPreferences mPrefs = this.getSharedPreferences("cs.lmu.StreamCam", Context.MODE_PRIVATE);
+        mPrefs = this.getSharedPreferences("cs.lmu.StreamCam", Context.MODE_PRIVATE);
     }
 
     public void goToCameraActivity() {

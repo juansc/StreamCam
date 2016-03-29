@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -14,6 +15,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.location.Location;
 import android.os.HandlerThread;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -27,6 +29,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +40,7 @@ import java.util.List;
 
 
 import cs.lmu.StreamCam.R;
+import cs.lmu.StreamCam.Utils.Timestamp;
 import cs.lmu.StreamCam.services.LocationService;
 import cs.lmu.StreamCam.Utils.TravelLog;
 
@@ -49,6 +55,7 @@ public class CameraActivity extends AppCompatActivity {
     private TravelLog mTravelLog;
     private boolean isStreaming;
     private BroadcastReceiver mLocationMessageReceiver;
+    SharedPreferences mPreferences;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -147,6 +154,8 @@ public class CameraActivity extends AppCompatActivity {
         mAddressTextView = (TextView) findViewById(R.id.addressValue);
 
         updateLocationDisplay(null, null);
+
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
     }
 
@@ -368,8 +377,27 @@ public class CameraActivity extends AppCompatActivity {
             updateLocationDisplay(null, null);
         } else {
             startService(intent);
+            createNewVideoRequest();
         }
         isStreaming = !isStreaming;
+    }
+
+    private void createNewVideoRequest() {
+        JSONObject requestBody = createNewJSONRequestBodyForNewVideo();
+
+
+
+    }
+
+    private JSONObject createNewJSONRequestBodyForNewVideo() {
+        JSONObject requestBody = new JSONObject();
+        try{
+            requestBody.put("video_timestamp", Timestamp.getTimestamp());
+            requestBody.put("user_token", mPreferences.getString("userToken", ""));
+        } catch(JSONException e) {
+            e.printStackTrace();
+        }
+        return requestBody;
     }
 
 
