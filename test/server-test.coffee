@@ -1,7 +1,7 @@
 async = require 'async'
 request = require 'supertest'
 expect = require('chai').expect
-url = 'http://localhost:3000'
+url = 'http://localhost:8080'
 db_client = require '../database/database_client'
 moment = require 'moment'
 
