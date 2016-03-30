@@ -1,43 +1,37 @@
 package cs.lmu.StreamCam.activities;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
 
+import cs.lmu.StreamCam.Utils.Constants;
 import cs.lmu.StreamCam.Utils.CustomDiagnostic;
 
 import cs.lmu.StreamCam.R;
+import cs.lmu.StreamCam.services.LoginRequestService;
 
 public class LoginScreen extends AppCompatActivity {
 
     private String mUsernameString;
-    private TextView mHTTPResponse;
     private EditText mUsernameText;
     private String mPasswordString;
     private EditText mPasswordText;
-    private RequestQueue mQueue;
     private SharedPreferences mPrefs;
+    private LoginResultReceiver mResultReceiver;
 
     private final String TAG = LoginScreen.class.getSimpleName();
 
@@ -50,22 +44,10 @@ public class LoginScreen extends AppCompatActivity {
 
         mUsernameText = (EditText) findViewById(R.id.LOGIN_username_text);
         mPasswordText = (EditText) findViewById(R.id.LOGIN_password_text);
-        mHTTPResponse = (TextView) findViewById(R.id.LOGIN_HTTP_response);
 
-        mQueue = Volley.newRequestQueue(this);
+        mResultReceiver = new LoginResultReceiver(new Handler());
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-    }
-
-    public void goToCameraActivity() {
-        Intent intent = new Intent(this, CameraActivity.class);
-        startActivity(intent);
-        finish();
-    }
-
-    public void goToCreateAccountActivityFromLogin(View view) {
-        Intent intent = new Intent(this, CreateNewAccountActivity.class);
-        startActivity(intent);
     }
 
     public void loginButtonClicked(View view) {
@@ -83,6 +65,17 @@ public class LoginScreen extends AppCompatActivity {
         }
 
         createLoginRequest();
+    }
+
+    public void goToCameraActivity() {
+        Intent intent = new Intent(this, CameraActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    public void goToCreateAccountActivityFromLogin(View view) {
+        Intent intent = new Intent(this, CreateNewAccountActivity.class);
+        startActivity(intent);
     }
 
     public CustomDiagnostic inputsAreValid() {
@@ -103,30 +96,12 @@ public class LoginScreen extends AppCompatActivity {
 
     }
 
-    public void createLoginRequest() {
-        String url = "https://stream-cam.herokuapp.com/api/v1/authenticate";
-
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.POST, url, createLoginJSONRequest(), new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.e(TAG, "We received a response");
-                        handleResponse(response);
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // TODO Auto-generated method stub
-                        Log.e(TAG, "We haven't received anything");
-                        Toast.makeText(
-                                getApplicationContext(),
-                                "Unable to connect to server.",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-        mQueue.add(jsObjRequest);
+    private void createLoginRequest() {
+        Intent intent = new Intent(this, LoginRequestService.class);
+        intent.putExtra("JSONRequest", createLoginJSONRequest().toString());
+        intent.putExtra("loginReceiver", mResultReceiver);
+        startService(intent);
+        Log.e(TAG, "Created a login request");
     }
 
     private JSONObject createLoginJSONRequest() {
@@ -150,7 +125,6 @@ public class LoginScreen extends AppCompatActivity {
             case 200:
                 try {
                     String token = (String) response.get("token");
-                    Log.e(TAG, "We got a token which is " + token);
                     mPrefs.edit().putString("userToken", token).apply();
                     goToCameraActivity();
                     return;
@@ -176,5 +150,28 @@ public class LoginScreen extends AppCompatActivity {
                 getApplicationContext(),
                 message,
                 Toast.LENGTH_SHORT).show();
+    }
+
+    class LoginResultReceiver extends ResultReceiver {
+        public LoginResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            if(resultCode == Constants.SUCCESS_RESULT) {
+                try{
+                    Log.e(TAG, "We received a response!!!");
+                    handleResponse(new JSONObject(resultData.getString("JSONResponse")));
+                } catch(JSONException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Toast.makeText(
+                        getApplicationContext(),
+                        "There was an error making the request",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

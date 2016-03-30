@@ -70,6 +70,9 @@
                 android:resource="@xml/authenticator" />
         </service>
 
+        <service android:name=".services.LoginRequestService"
+            android:exported="false"/>
+
         <provider
             android:authorities="cs.lmu.StreamCam.provider"
             android:name=".Utils.StubProvider"
