@@ -1,5 +1,7 @@
 package cs.lmu.StreamCam.Utils;
 
+import com.android.volley.Request;
+
 /**
  * Created by juanscarrillo on 2/21/16.
  */
@@ -13,5 +15,12 @@ public final class Constants {
             ".RESULT_DATA_KEY";
     public static final String LOCATION_DATA_EXTRA = PACKAGE_NAME +
             ".LOCATION_DATA_EXTRA";
-    public static final String 
+
+    private static final String API_DOMAIN = "https://stream-cam.herokuapp.com/api/v1/";
+    public static final String LOGIN_URL = API_DOMAIN + "authenticate";
+    public static final String CREATE_ACCOUNT_URL = API_DOMAIN + "users";
+
+    public static final int POST_METHOD = Request.Method.POST;
+    public static final int PUT_METHOD = Request.Method.PUT;
+    public static final int GET_METHOD = Request.Method.GET;
 }

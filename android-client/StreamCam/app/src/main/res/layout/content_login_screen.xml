@@ -68,13 +68,4 @@
         android:layout_alignStart="@+id/LOGIN_login_button"
         android:onClick="goToCreateAccountActivityFromLogin"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/LOGIN_HTTP_response"
-        android:layout_below="@+id/button"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="37dp"
-        android:hint="HTTP Response will go here!" />
 </RelativeLayout>

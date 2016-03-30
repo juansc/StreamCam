@@ -4,8 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -23,7 +27,9 @@ import org.json.JSONObject;
 import java.util.HashMap;
 
 import cs.lmu.StreamCam.R;
+import cs.lmu.StreamCam.Utils.Constants;
 import cs.lmu.StreamCam.Utils.CustomDiagnostic;
+import cs.lmu.StreamCam.services.HTTPRequestService;
 
 
 public class CreateNewAccountActivity extends AppCompatActivity {
@@ -35,7 +41,7 @@ public class CreateNewAccountActivity extends AppCompatActivity {
     private String mPassword;
     private String mConfirmPassword;
     private SharedPreferences mPrefs;
-    private RequestQueue mQueue;
+    private CreateAccountResultReceiver mResultReceiver;
 
     private static final String TAG = CreateNewAccountActivity.class.getSimpleName();
 
@@ -49,10 +55,10 @@ public class CreateNewAccountActivity extends AppCompatActivity {
         mUsernameText = (EditText) findViewById(R.id.CREATE_ACCOUNT_username);
         mPasswordText = (EditText) findViewById(R.id.CREATE_ACCOUNT_password);
         mPasswordConfirmText = (EditText) findViewById(R.id.CREATE_ACCOUNT_confirm_password);
-        mQueue = Volley.newRequestQueue(this);
+        mResultReceiver = new CreateAccountResultReceiver(new Handler());
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        mPrefs = this.getSharedPreferences("cs.lmu.StreamCam", Context.MODE_PRIVATE);
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
     }
 
     public void goToCameraActivityFromCreateAccount() {
@@ -80,25 +86,12 @@ public class CreateNewAccountActivity extends AppCompatActivity {
     }
 
     public void makeNewUserRequest() {
-        String url = "https://stream-cam.herokuapp.com/api/v1/users";
-
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.POST, url, createNewUserJSONRequest(), new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        //
-                        handleResponse(response);
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // TODO Auto-generated method stub
-                    }
-                });
-
-        mQueue.add(jsObjRequest);
+        Intent intent = new Intent(this, HTTPRequestService.class);
+        intent.putExtra("JSONRequest", createNewUserJSONRequest().toString());
+        intent.putExtra("url", Constants.CREATE_ACCOUNT_URL);
+        intent.putExtra("method", Constants.POST_METHOD);
+        intent.putExtra("httpReceiver", mResultReceiver);
+        startService(intent);
     }
 
     public CustomDiagnostic inputsAreValid() {
@@ -161,10 +154,34 @@ public class CreateNewAccountActivity extends AppCompatActivity {
 
         mUsernameText.setText("");
         mPasswordText.setText("");
+        mPasswordConfirmText.setText("");
         Toast.makeText(
                 getApplicationContext(),
                 message,
                 Toast.LENGTH_SHORT).show();
+    }
+
+    class CreateAccountResultReceiver extends ResultReceiver {
+        public CreateAccountResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            if(resultCode == Constants.SUCCESS_RESULT) {
+                try{
+                    Log.e(TAG, "We received a response!!!");
+                    handleResponse(new JSONObject(resultData.getString("JSONResponse")));
+                } catch(JSONException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Toast.makeText(
+                        getApplicationContext(),
+                        "There was an error making the request",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
 }

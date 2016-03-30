@@ -73,6 +73,9 @@
         <service android:name=".services.LoginRequestService"
             android:exported="false"/>
 
+        <service android:name=".services.HTTPRequestService"
+            android:exported="false"/>
+
         <provider
             android:authorities="cs.lmu.StreamCam.provider"
             android:name=".Utils.StubProvider"

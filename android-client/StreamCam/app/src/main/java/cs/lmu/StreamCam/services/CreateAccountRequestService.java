@@ -22,15 +22,15 @@ import cs.lmu.StreamCam.Utils.Constants;
 /**
  * Created by juanscarrillo on 3/29/16.
  */
-public class LoginRequestService extends IntentService {
+public class CreateAccountRequestService extends IntentService {
 
     protected ResultReceiver mReceiver;
     private RequestQueue mQueue;
 
-    private static final String TAG = LoginRequestService.class.getSimpleName();
+    private static final String TAG = CreateAccountRequestService.class.getSimpleName();
 
 
-    public LoginRequestService() {
+    public CreateAccountRequestService() {
         super(TAG);
     }
 
@@ -48,7 +48,7 @@ public class LoginRequestService extends IntentService {
     }
 
     private void createLoginRequest(JSONObject requestBody) {
-        String url = Constants.LOGIN_URL;
+        String url = Constants.CREATE_ACCOUNT_URL;
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.POST, url, requestBody, new Response.Listener<JSONObject>() {

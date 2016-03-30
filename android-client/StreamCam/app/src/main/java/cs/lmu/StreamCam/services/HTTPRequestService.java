@@ -17,45 +17,51 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+
 import cs.lmu.StreamCam.Utils.Constants;
 
 /**
  * Created by juanscarrillo on 3/29/16.
  */
-public class LoginRequestService extends IntentService {
+public class HTTPRequestService extends IntentService {
 
     protected ResultReceiver mReceiver;
     private RequestQueue mQueue;
 
-    private static final String TAG = LoginRequestService.class.getSimpleName();
+    private static final String TAG = HTTPRequestService.class.getSimpleName();
 
 
-    public LoginRequestService() {
+    public HTTPRequestService() {
         super(TAG);
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.e(TAG, "We got a request!");
+
         mQueue = Volley.newRequestQueue(this);
-        mReceiver = intent.getParcelableExtra("loginReceiver");
+        mReceiver = intent.getParcelableExtra("httpReceiver");
+
+        String url = intent.getStringExtra("url");
+        int method = intent.getIntExtra("method", Constants.GET_METHOD);
+
         try{
             JSONObject requestBody = new JSONObject(intent.getStringExtra("JSONRequest"));
-            createLoginRequest(requestBody);
+            createRequest(url, method, requestBody);
         } catch(JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void createLoginRequest(JSONObject requestBody) {
-        String url = Constants.LOGIN_URL;
+    private void createRequest(String url, int method, JSONObject requestBody) {
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.POST, url, requestBody, new Response.Listener<JSONObject>() {
+                (method, url, requestBody, new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.e(TAG, "We received a response");
+                        Log.e(TAG, "We received a good response");
                         deliverResponseToReceiver(Constants.SUCCESS_RESULT, response);
                         stopSelf();
                     }
@@ -63,12 +69,14 @@ public class LoginRequestService extends IntentService {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // TODO Auto-generated method stub
-                        Log.e(TAG, "We haven't received anything");
-                        Toast.makeText(
-                                getApplicationContext(),
-                                "Unable to connect to server.",
-                                Toast.LENGTH_SHORT).show();
-                        deliverResponseToReceiver(Constants.FAILURE_RESULT, null);
+                        Log.e(TAG, "We received an error response");
+                        JSONObject response = null;
+                        try{
+                            response = new JSONObject(new String(new String(error.networkResponse.data,"UTF-8")));
+                        } catch(JSONException | UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+                        deliverResponseToReceiver(Constants.SUCCESS_RESULT, response);
                         stopSelf();
                     }
                 });

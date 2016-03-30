@@ -22,6 +22,7 @@ import cs.lmu.StreamCam.Utils.Constants;
 import cs.lmu.StreamCam.Utils.CustomDiagnostic;
 
 import cs.lmu.StreamCam.R;
+import cs.lmu.StreamCam.services.HTTPRequestService;
 import cs.lmu.StreamCam.services.LoginRequestService;
 
 public class LoginScreen extends AppCompatActivity {
@@ -97,10 +98,13 @@ public class LoginScreen extends AppCompatActivity {
     }
 
     private void createLoginRequest() {
-        Intent intent = new Intent(this, LoginRequestService.class);
+        Intent intent = new Intent(this, HTTPRequestService.class);
         intent.putExtra("JSONRequest", createLoginJSONRequest().toString());
-        intent.putExtra("loginReceiver", mResultReceiver);
+        intent.putExtra("httpReceiver", mResultReceiver);
+        intent.putExtra("method", Constants.POST_METHOD);
+        intent.putExtra("url", Constants.LOGIN_URL);
         startService(intent);
+
         Log.e(TAG, "Created a login request");
     }
 
@@ -113,6 +117,7 @@ public class LoginScreen extends AppCompatActivity {
 
     public void handleResponse(JSONObject response){
         int status = 0;
+        String message;
 
         try {
             status = (int) response.get("status");
@@ -120,7 +125,6 @@ public class LoginScreen extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        String message;
         switch (status) {
             case 200:
                 try {
@@ -137,14 +141,15 @@ public class LoginScreen extends AppCompatActivity {
                 break;
             case 404:
                 message = "Username does not exist.";
+                mUsernameText.setText("");
                 break;
             default:
                 message = "Unknown error occurred";
+                mUsernameText.setText("");
                 break;
 
         }
 
-        mUsernameText.setText("");
         mPasswordText.setText("");
         Toast.makeText(
                 getApplicationContext(),
