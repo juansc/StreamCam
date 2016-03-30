@@ -49,14 +49,26 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="CameraActivity.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="CameraActivity.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/CameraActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="382" column="24" selection-start-line="382" selection-start-column="24" selection-end-line="382" selection-end-column="24" />
+            <state vertical-scroll-proportion="9.081197">
+              <caret line="436" column="10" selection-start-line="436" selection-start-column="10" selection-end-line="436" selection-end-column="10" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#16190#16191#0" expanded="true" />
+                <element signature="e#16228#16229#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Constants.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/Utils/Constants.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="21" column="47" selection-start-line="21" selection-start-column="31" selection-end-line="21" selection-end-column="47" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -84,16 +96,6 @@
           </provider>
           <provider selected="true" editor-type-id="android-designer">
             <state />
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="LoginRequestService.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/services/LoginRequestService.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="53" column="17" selection-start-line="53" selection-start-column="17" selection-end-line="53" selection-end-column="36" />
-              <folding />
-            </state>
           </provider>
         </entry>
       </file>
@@ -138,7 +140,7 @@
         <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/LoginScreen.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="147" column="42" selection-start-line="147" selection-start-column="42" selection-end-line="147" selection-end-column="42" />
+              <caret line="48" column="23" selection-start-line="48" selection-start-column="8" selection-end-line="48" selection-end-column="23" />
               <folding />
             </state>
           </provider>
@@ -159,11 +161,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="CreateNewAccountActivity.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="CreateNewAccountActivity.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/CreateNewAccountActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="2.4074075">
-              <caret line="146" column="60" selection-start-line="146" selection-start-column="60" selection-end-line="146" selection-end-column="60" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="129" column="12" selection-start-line="129" selection-start-column="12" selection-end-line="129" selection-end-column="50" />
               <folding />
             </state>
           </provider>
@@ -2042,17 +2044,17 @@
         <option value="$PROJECT_DIR$/src/main/res/layout/activity_camera.xml" />
         <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/services/LocationService.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/Utils/Timestamp.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/CameraActivity.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/services/FetchAddressIntentService.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/services/LocationPostService.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/services/LoginRequestService.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/services/CreateAccountRequestService.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/Utils/Constants.java" />
         <option value="$PROJECT_DIR$/src/main/AndroidManifest.xml" />
         <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/services/HTTPRequestService.java" />
         <option value="$PROJECT_DIR$/src/main/res/layout/content_login_screen.xml" />
-        <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/LoginScreen.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/CreateNewAccountActivity.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/Utils/Constants.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/LoginScreen.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/CameraActivity.java" />
       </list>
     </option>
   </component>
@@ -2509,6 +2511,8 @@
           <caret line="57" column="3" selection-start-line="57" selection-start-column="3" selection-end-line="57" selection-end-column="75" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#16190#16191#0" expanded="true" />
+            <element signature="e#16228#16229#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2600,6 +2604,8 @@
           <caret line="57" column="3" selection-start-line="57" selection-start-column="3" selection-end-line="57" selection-end-column="75" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#16190#16191#0" expanded="true" />
+            <element signature="e#16228#16229#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2825,13 +2831,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/Utils/Constants.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="24" column="60" selection-start-line="24" selection-start-column="60" selection-end-line="24" selection-end-column="60" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/AndroidManifest.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -2881,16 +2880,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/CameraActivity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="382" column="24" selection-start-line="382" selection-start-column="24" selection-end-line="382" selection-end-column="24" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/res/layout/activity_login_screen.xml">
       <provider editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -2936,19 +2925,39 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/LoginScreen.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/Utils/Constants.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="147" column="42" selection-start-line="147" selection-start-column="42" selection-end-line="147" selection-end-column="42" />
+          <caret line="21" column="47" selection-start-line="21" selection-start-column="31" selection-end-line="21" selection-end-column="47" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/CreateNewAccountActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="2.4074075">
-          <caret line="146" column="60" selection-start-line="146" selection-start-column="60" selection-end-line="146" selection-end-column="60" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="129" column="12" selection-start-line="129" selection-start-column="12" selection-end-line="129" selection-end-column="50" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/LoginScreen.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="48" column="23" selection-start-line="48" selection-start-column="8" selection-end-line="48" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cs/lmu/StreamCam/activities/CameraActivity.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="9.081197">
+          <caret line="436" column="10" selection-start-line="436" selection-start-column="10" selection-end-line="436" selection-end-column="10" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#16190#16191#0" expanded="true" />
+            <element signature="e#16228#16229#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

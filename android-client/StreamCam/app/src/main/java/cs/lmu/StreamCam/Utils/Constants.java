@@ -19,6 +19,7 @@ public final class Constants {
     private static final String API_DOMAIN = "https://stream-cam.herokuapp.com/api/v1/";
     public static final String LOGIN_URL = API_DOMAIN + "authenticate";
     public static final String CREATE_ACCOUNT_URL = API_DOMAIN + "users";
+    public static final String CREATE_VIDEO_URL = API_DOMAIN + "videos";
 
     public static final int POST_METHOD = Request.Method.POST;
     public static final int PUT_METHOD = Request.Method.PUT;

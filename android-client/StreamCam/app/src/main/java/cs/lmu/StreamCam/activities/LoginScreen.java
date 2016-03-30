@@ -147,7 +147,6 @@ public class LoginScreen extends AppCompatActivity {
                 message = "Unknown error occurred";
                 mUsernameText.setText("");
                 break;
-
         }
 
         mPasswordText.setText("");

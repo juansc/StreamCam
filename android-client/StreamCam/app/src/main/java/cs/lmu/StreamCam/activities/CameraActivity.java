@@ -15,6 +15,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.location.Location;
 import android.os.HandlerThread;
+import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -29,13 +30,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -47,7 +41,9 @@ import java.util.List;
 
 
 import cs.lmu.StreamCam.R;
+import cs.lmu.StreamCam.Utils.Constants;
 import cs.lmu.StreamCam.Utils.Timestamp;
+import cs.lmu.StreamCam.services.HTTPRequestService;
 import cs.lmu.StreamCam.services.LocationService;
 import cs.lmu.StreamCam.Utils.TravelLog;
 
@@ -63,7 +59,7 @@ public class CameraActivity extends AppCompatActivity {
     private boolean isStreaming;
     private BroadcastReceiver mLocationMessageReceiver;
     SharedPreferences mPreferences;
-    private RequestQueue mQueue;
+    private CreateVideoResultReceiver mResultReceiver;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -164,7 +160,7 @@ public class CameraActivity extends AppCompatActivity {
         updateLocationDisplay(null, null);
 
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mQueue = Volley.newRequestQueue(this);
+        mResultReceiver = new CreateVideoResultReceiver(new Handler());
 
     }
 
@@ -400,45 +396,12 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void createNewVideoRequest() {
-        JSONObject requestBody = createNewJSONRequestBodyForNewVideo();
-        String url = "https://stream-cam.herokuapp.com/api/v1/videos";
-
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.POST, url, requestBody, new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.e(TAG, "We received a response");
-                        int status = 0;
-                        try{
-                            status = (int) response.get("status");
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        if(status == 200) {
-                            beginLocationServices();
-                        } else{
-                            Toast.makeText(
-                                    getApplicationContext(),
-                                    "Unable to connect to server",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // TODO Auto-generated method stub
-                        Log.e(TAG, "We haven't received anything");
-                        Toast.makeText(
-                                getApplicationContext(),
-                                "Unable to create a video.",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-        mQueue.add(jsObjRequest);
-
-
+        Intent intent = new Intent(this, HTTPRequestService.class);
+        intent.putExtra("JSONRequest", createNewJSONRequestBodyForNewVideo().toString());
+        intent.putExtra("url", Constants.CREATE_VIDEO_URL);
+        intent.putExtra("method", Constants.POST_METHOD);
+        intent.putExtra("httpReceiver", mResultReceiver);
+        startService(intent);
     }
 
     private JSONObject createNewJSONRequestBodyForNewVideo() {
@@ -452,6 +415,46 @@ public class CameraActivity extends AppCompatActivity {
         return requestBody;
     }
 
+    private void handleVideoResponse(JSONObject response) {
+        int status = 0;
 
+        try{
+            status = (int) response.get("status");
+        } catch(JSONException e) {
+            e.printStackTrace();
+        }
+
+        if(status == 200) {
+            beginLocationServices();
+        } else {
+            Toast.makeText(
+                    getApplicationContext(),
+                    "Unable to create video",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    class CreateVideoResultReceiver extends ResultReceiver {
+        public CreateVideoResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            if(resultCode == Constants.SUCCESS_RESULT) {
+                try{
+                    Log.e(TAG, "We received a response!!!");
+                    handleVideoResponse(new JSONObject(resultData.getString("JSONResponse")));
+                } catch(JSONException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Toast.makeText(
+                        getApplicationContext(),
+                        "There was an error making the request",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 
 }
