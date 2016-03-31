@@ -11,6 +11,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -22,14 +23,15 @@ import cs.lmu.StreamCam.Utils.Constants;
 import cs.lmu.StreamCam.Utils.CustomDiagnostic;
 
 import cs.lmu.StreamCam.R;
+import cs.lmu.StreamCam.Utils.UI;
 import cs.lmu.StreamCam.services.HTTPRequestService;
-import cs.lmu.StreamCam.services.LoginRequestService;
 
 public class LoginScreen extends AppCompatActivity {
 
     private String mUsernameString;
     private EditText mUsernameText;
     private String mPasswordString;
+    private ProgressBar mProgressBar;
     private EditText mPasswordText;
     private SharedPreferences mPrefs;
     private LoginResultReceiver mResultReceiver;
@@ -45,6 +47,7 @@ public class LoginScreen extends AppCompatActivity {
 
         mUsernameText = (EditText) findViewById(R.id.LOGIN_username_text);
         mPasswordText = (EditText) findViewById(R.id.LOGIN_password_text);
+        mProgressBar = (ProgressBar) findViewById(R.id.LOGIN_progress_bar);
 
         mResultReceiver = new LoginResultReceiver(new Handler());
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -62,10 +65,11 @@ public class LoginScreen extends AppCompatActivity {
                     getApplicationContext(),
                     inputsDiagnostic.getMessage(),
                     Toast.LENGTH_SHORT).show();
-            return;
+        } else{
+            createLoginRequest();
         }
+        UI.hideKeyboard(this);
 
-        createLoginRequest();
     }
 
     public void goToCameraActivity() {
@@ -130,6 +134,7 @@ public class LoginScreen extends AppCompatActivity {
                 try {
                     String token = (String) response.get("token");
                     mPrefs.edit().putString("userToken", token).apply();
+                    mProgressBar.setVisibility(View.VISIBLE);
                     goToCameraActivity();
                     return;
                 } catch (JSONException e){

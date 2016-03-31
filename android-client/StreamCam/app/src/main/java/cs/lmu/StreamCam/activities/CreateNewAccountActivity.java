@@ -29,6 +29,7 @@ import java.util.HashMap;
 import cs.lmu.StreamCam.R;
 import cs.lmu.StreamCam.Utils.Constants;
 import cs.lmu.StreamCam.Utils.CustomDiagnostic;
+import cs.lmu.StreamCam.Utils.UI;
 import cs.lmu.StreamCam.services.HTTPRequestService;
 
 
@@ -78,11 +79,10 @@ public class CreateNewAccountActivity extends AppCompatActivity {
                     getApplicationContext(),
                     inputsDiagnostic.getMessage(),
                     Toast.LENGTH_SHORT).show();
-            return;
+        } else{
+            makeNewUserRequest();
         }
-
-        makeNewUserRequest();
-
+        UI.hideKeyboard(this);
     }
 
     public void makeNewUserRequest() {
