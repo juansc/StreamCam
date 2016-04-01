@@ -18,6 +18,9 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.DateFormat;
 import java.util.Date;
 
@@ -68,6 +71,7 @@ public class LocationService extends Service implements
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        mVideoID = intent.getIntExtra("videoID", 0);
         if(!mRequestingLocationUpdates) {
             mRequestingLocationUpdates = true;
             startTrackingLocation();
@@ -111,7 +115,7 @@ public class LocationService extends Service implements
             startAddressIntentService();
         }
 
-        Log.e(TAG, "We have gottent the first address!!!");
+        Log.e(TAG, "We have gotten the first address!!!");
     }
 
     @Override
@@ -222,7 +226,6 @@ public class LocationService extends Service implements
             mCurrentAddress = mAddressOutput;
 
             sendLocationToActivity();
-            postLocationToServer();
 
             if(resultCode == Constants.SUCCESS_RESULT) {
                 Log.e(TAG, "Found an address");
@@ -241,10 +244,4 @@ public class LocationService extends Service implements
         Log.e(TAG, "We have sent the location!");
     }
 
-    private void postLocationToServer() {
-        Intent intent = new Intent("sendLocation");
-        intent.putExtra("location", mCurrentLocation);
-        intent.putExtra("address", mCurrentAddress);
-        intent.putExtra("videoID", mVideoID);
-    }
 }

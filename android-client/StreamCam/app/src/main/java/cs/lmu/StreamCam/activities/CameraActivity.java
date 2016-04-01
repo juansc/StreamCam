@@ -47,6 +47,7 @@ import cs.lmu.StreamCam.services.HTTPRequestService;
 import cs.lmu.StreamCam.services.LocationService;
 import cs.lmu.StreamCam.Utils.TravelLog;
 
+// TODO: Need to implement receiver for POST location
 public class CameraActivity extends AppCompatActivity {
     private static final String TAG = CameraActivity.class.getSimpleName();
 
@@ -60,6 +61,9 @@ public class CameraActivity extends AppCompatActivity {
     private BroadcastReceiver mLocationMessageReceiver;
     SharedPreferences mPreferences;
     private CreateVideoResultReceiver mResultReceiver;
+    private int mCurrentVideoID;
+    private Location mCurrentLocation;
+    private String mAddress;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -168,9 +172,10 @@ public class CameraActivity extends AppCompatActivity {
         mLocationMessageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Location location = intent.getParcelableExtra("location");
-                String address = intent.getStringExtra("address");
-                updateLocationDisplay(location, address);
+                mCurrentLocation = intent.getParcelableExtra("location");
+                mAddress = intent.getStringExtra("address");
+                updateLocationDisplay(mCurrentLocation, mAddress);
+                postLocationToServer();
             }
         };
 
@@ -387,6 +392,7 @@ public class CameraActivity extends AppCompatActivity {
 
     private void beginLocationServices() {
         Intent intent = new Intent(this, LocationService.class);
+        intent.putExtra("videoID", mCurrentVideoID);
         startService(intent);
     }
 
@@ -425,13 +431,47 @@ public class CameraActivity extends AppCompatActivity {
         }
 
         if(status == 200) {
-            beginLocationServices();
+            try{
+                mCurrentVideoID = (int) response.get("video_id");
+                beginLocationServices();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         } else {
             Toast.makeText(
                     getApplicationContext(),
                     "Unable to create video",
                     Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void postLocationToServer() {
+        Intent intent = new Intent(this, HTTPRequestService.class);
+        intent.putExtra("JSONRequest", createNewJSONRequestBodyForPostingLocation().toString());
+        intent.putExtra("url", Constants.POST_LOCATION_URL + "/" + mCurrentVideoID);
+        intent.putExtra("method", Constants.POST_METHOD);
+        intent.putExtra("httpReceiver", mResultReceiver);
+    }
+
+    private JSONObject createNewJSONRequestBodyForPostingLocation () {
+        JSONObject postRequest = new JSONObject();
+
+        try {
+            postRequest.put("token", mPreferences.getString("userToken", ""));
+
+
+            JSONObject JSONLocation = new JSONObject();
+            JSONLocation.put("address", mAddress);
+            JSONLocation.put("latitude", String.valueOf(mCurrentLocation.getLatitude()));
+            JSONLocation.put("longitude", String.valueOf(mCurrentLocation.getLongitude()));
+            JSONLocation.put("timestamp", Timestamp.getTimestamp());
+
+            postRequest.put("location", JSONLocation);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return postRequest;
     }
 
     class CreateVideoResultReceiver extends ResultReceiver {
