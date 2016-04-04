@@ -57,31 +57,9 @@
         <service android:name=".services.LocationService"
             android:exported="false"/>
 
-
-
-        <service
-            android:name=".services.AuthenticatorService">
-            <!-- The intent filter specifies that the service will only respond
-             if triggered by AccountAuthenticator-->
-            <intent-filter>
-                <action android:name="android.accounts.AccountAuthenticator"/>
-            </intent-filter>
-            <meta-data
-                android:name="android.accounts.AccountAuthenticator"
-                android:resource="@xml/authenticator" />
-        </service>
-
-        <service android:name=".services.LoginRequestService"
-            android:exported="false"/>
-
         <service android:name=".services.HTTPRequestService"
             android:exported="false"/>
 
-        <provider
-            android:authorities="cs.lmu.StreamCam.provider"
-            android:name=".Utils.StubProvider"
-            android:exported="false"
-            android:syncable="true"/>
 
 
     </application>

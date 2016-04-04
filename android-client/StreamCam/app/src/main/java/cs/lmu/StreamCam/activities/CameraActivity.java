@@ -490,7 +490,6 @@ public class CameraActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        Log.e(TAG, "We will send "+  postRequest.toString());
         return postRequest;
     }
 
