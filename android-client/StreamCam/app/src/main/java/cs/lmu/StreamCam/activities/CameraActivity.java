@@ -60,7 +60,8 @@ public class CameraActivity extends AppCompatActivity {
     private boolean isStreaming;
     private BroadcastReceiver mLocationMessageReceiver;
     SharedPreferences mPreferences;
-    private CreateVideoResultReceiver mResultReceiver;
+    private CreateVideoResultReceiver mVideoResultReceiver;
+    private PostLocationResultReceiver mLocationPostResultReceiver;
     private int mCurrentVideoID;
     private Location mCurrentLocation;
     private String mAddress;
@@ -164,7 +165,8 @@ public class CameraActivity extends AppCompatActivity {
         updateLocationDisplay(null, null);
 
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mResultReceiver = new CreateVideoResultReceiver(new Handler());
+        mVideoResultReceiver = new CreateVideoResultReceiver(new Handler());
+        mLocationPostResultReceiver = new PostLocationResultReceiver(new Handler());
 
     }
 
@@ -406,7 +408,7 @@ public class CameraActivity extends AppCompatActivity {
         intent.putExtra("JSONRequest", createNewJSONRequestBodyForNewVideo().toString());
         intent.putExtra("url", Constants.CREATE_VIDEO_URL);
         intent.putExtra("method", Constants.POST_METHOD);
-        intent.putExtra("httpReceiver", mResultReceiver);
+        intent.putExtra("httpReceiver", mVideoResultReceiver);
         startService(intent);
     }
 
@@ -433,6 +435,7 @@ public class CameraActivity extends AppCompatActivity {
         if(status == 200) {
             try{
                 mCurrentVideoID = (int) response.get("video_id");
+                Toast.makeText(CameraActivity.this, "We got a video!!", Toast.LENGTH_SHORT).show();
                 beginLocationServices();
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -445,12 +448,28 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
+    private void handleLocationResponse(JSONObject response) {
+        int status = 0;
+        String message = "";
+        try{
+            status = (int) response.get("status");
+            message = (String) response.get("message");
+        } catch(JSONException e) {
+            e.printStackTrace();
+        }
+
+        if(status != 200)  {
+            Toast.makeText(getApplicationContext(), "Unable to post location succesfully, got code " + status + ": " + message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void postLocationToServer() {
         Intent intent = new Intent(this, HTTPRequestService.class);
         intent.putExtra("JSONRequest", createNewJSONRequestBodyForPostingLocation().toString());
         intent.putExtra("url", Constants.POST_LOCATION_URL + "/" + mCurrentVideoID);
-        intent.putExtra("method", Constants.POST_METHOD);
-        intent.putExtra("httpReceiver", mResultReceiver);
+        intent.putExtra("method", Constants.PUT_METHOD);
+        intent.putExtra("httpReceiver", mLocationPostResultReceiver);
+        startService(intent);
     }
 
     private JSONObject createNewJSONRequestBodyForPostingLocation () {
@@ -471,6 +490,7 @@ public class CameraActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        Log.e(TAG, "We will send "+  postRequest.toString());
         return postRequest;
     }
 
@@ -485,6 +505,29 @@ public class CameraActivity extends AppCompatActivity {
                 try{
                     Log.e(TAG, "We received a response!!!");
                     handleVideoResponse(new JSONObject(resultData.getString("JSONResponse")));
+                } catch(JSONException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Toast.makeText(
+                        getApplicationContext(),
+                        "There was an error making the request",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    class PostLocationResultReceiver extends ResultReceiver {
+        public PostLocationResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            if(resultCode == Constants.SUCCESS_RESULT) {
+                try{
+                    Log.e(TAG, "We received a response!!!");
+                    handleLocationResponse(new JSONObject(resultData.getString("JSONResponse")));
                 } catch(JSONException e) {
                     e.printStackTrace();
                 }

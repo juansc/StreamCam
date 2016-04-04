@@ -67,6 +67,7 @@ public class LoginScreen extends AppCompatActivity {
                     Toast.LENGTH_SHORT).show();
         } else{
             createLoginRequest();
+            mProgressBar.setVisibility(View.VISIBLE);
         }
         UI.hideKeyboard(this);
 
@@ -134,7 +135,6 @@ public class LoginScreen extends AppCompatActivity {
                 try {
                     String token = (String) response.get("token");
                     mPrefs.edit().putString("userToken", token).apply();
-                    mProgressBar.setVisibility(View.VISIBLE);
                     goToCameraActivity();
                     return;
                 } catch (JSONException e){
@@ -154,6 +154,7 @@ public class LoginScreen extends AppCompatActivity {
                 break;
         }
 
+        mProgressBar.setVisibility(View.INVISIBLE);
         mPasswordText.setText("");
         Toast.makeText(
                 getApplicationContext(),

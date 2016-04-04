@@ -45,8 +45,7 @@ public class LocationService extends Service implements
     private String mLastUpdateTime;
     private String mCurrentAddress;
     private LocalBroadcastManager mBroadcaster;
-    private int mVideoID;
-    private float minimumDistanceBetweenLocations = 20;
+    private final float minimumDistanceBetweenLocations = 20;
 
     private static final String TAG = LocationService.class.getSimpleName();
 
@@ -71,7 +70,6 @@ public class LocationService extends Service implements
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        mVideoID = intent.getIntExtra("videoID", 0);
         if(!mRequestingLocationUpdates) {
             mRequestingLocationUpdates = true;
             startTrackingLocation();
@@ -121,7 +119,7 @@ public class LocationService extends Service implements
     @Override
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
-        Toast.makeText(getApplicationContext(), "We moved " + mLastLocation.distanceTo(mCurrentLocation) + "meters!", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(), "We moved " + mLastLocation.distanceTo(mCurrentLocation) + "meters!", Toast.LENGTH_SHORT).show();
         if(mCurrentLocation.distanceTo(mLastLocation) >= minimumDistanceBetweenLocations) {
             mLastLocation = mCurrentLocation;
             startAddressIntentService();

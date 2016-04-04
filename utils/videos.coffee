@@ -59,12 +59,7 @@ exports.appendManifestToVideo = (req, res) ->
       status: 400
       message: "No location included"
 
-  try
-    location = JSON.parse req.body.location
-  catch e
-    return res.status(400).json
-      status: 400
-      message: "Could not parse location."
+  location = req.body.location
 
   video_id = req.params.video_id
   # First we check that the video
