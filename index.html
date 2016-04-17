@@ -1,0 +1,62 @@
+<!doctype html>
+<hmtl>
+    <head>
+        <meta charset="UTF-8">
+        <title>Login</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="signin.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    </head>
+    <body>
+    <div class="container">
+
+      <div class="row">
+        <div class="col-xs-6 col-md-6">
+          <form class="form-signin">
+            <h2 class="form-signin-heading">Login</h2>
+            <label for="inputEmail" class="sr-only">Email address</label>
+            <input type="text" id="uesr-name" class="form-control" placeholder="Username" name="user" required autofocus>
+            <label for="inputPassword" class="sr-only" name="password">Password</label>
+            <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+            <button class="btn btn-lg btn-primary btn-block">Sign in</button>
+          </form>
+        </div>
+        <div class="col-xs-6 col-md-6">
+          <form id="createNewAccountForm"class="form-signin"
+              data-fv-framework="bootstrap"
+              data-fv-icon-valid="glyphicon glyphicon-ok"
+              data-fv-icon-invalid="glyphicon glyphicon-remove"
+              data-fv-icon-validating="glyphicon glyphicon-refresh">
+
+            <h2 class="form-signin-heading">Sign Up</h2>
+            <input type="text" id="user-name" class="form-control" placeholder="Username" required autofocus>
+              <div class="form-group">
+                      <input type="password" class="form-control" name="newPassword" placeholder="Password" />
+              </div>
+
+              <div class="form-group">
+                      <input type="password" class="form-control" name="confirmPassword"
+                          placeholder="Confirm Password"
+                          data-fv-identical="true"
+                          data-fv-identical-field="newPassword"
+                          data-fv-identical-message="The password and its confirm are not the same" />
+              </div>
+            <button class="btn btn-lg btn-primary btn-block">Create Account</button>
+        </div>
+      </div>
+
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/formvalidation/0.6.1/js/formValidation.js"></script>
+    <script src="http://formvalidation.io/vendor/formvalidation/js/formValidation.min.js"></script>
+    <script src="http://formvalidation.io/vendor/formvalidation/js/framework/bootstrap.min.js"></script>
+    <script>
+$(document).ready(function() {
+
+    $('#createNewAccountForm').formValidation();
+    console.log("Did it!");
+});
+    </script>
+    </body>
+</html>
