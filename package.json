@@ -11,6 +11,7 @@
     "async":"^1.5.2",
     "chai":"3.5.0",
     "coffee-script":"1.10.0",
+    "cors":"2.7.1 ",
     "express": "^4.13.3",
     "body-parser": "~1.0.1",
     "dotenv-with-overload": "0.5.1",

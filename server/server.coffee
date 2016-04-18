@@ -1,5 +1,6 @@
 express = require 'express'
 app = express()
+cors = require('cors')
 bodyParser = require 'body-parser'
 db_client = require '../database/database_client'
 jwt = require 'jwt-simple'
@@ -10,6 +11,7 @@ videos = require '../utils/videos'
 
 app.use bodyParser.urlencoded {extended: true}
 app.use bodyParser.json()
+app.use cors()
 
 port = process.env.PORT || 3000
 
