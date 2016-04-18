@@ -5,7 +5,6 @@ $(function () {
     			user: $('#user-name').val(),
     			password: $('#password').val(),
     		});
-    	console.log(requestObject);
     	$.ajax({
     		type: "POST",
 	        url: "https://stream-cam.herokuapp.com/api/v1/authenticate",
