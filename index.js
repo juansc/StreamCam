@@ -11,16 +11,44 @@ $(function () {
 	        data: requestObject,
 	        contentType: "application/json; charset=utf-8",
 	        dataType: "json",
-	        success: function (data) {
-	            console.log(data.toString());
+	        success: function (response) {
+	            if(response.status === 200) {
+	            	clearErrorMessage();
+	            	window.location.href = "video_view.html";
+	            }
 	        },
 	        error: function (jqXHR, textStatus, errorThrown) {
-	            console.log(errorThrown);
+	        	var status = jqXHR.status,
+	        	    message = "";
+
+	        	switch(status) {
+	        		case 400:
+	        			message = "Please provide username and password";
+	        			break;
+	        		case 401:
+	        			message = "Incorrect password";
+	        			break;
+	        		case 404:
+	        			message = "Username not found.";
+	        			break;
+	        		default:
+	        			message = "Unknown error";
+	        			break;
+	        	}
+	        	handleError(message);
 	        }
     	});
-
-
     };
+
+    var handleError = function (errorMessage) {
+    	$("#error-message").html(errorMessage);
+    	$("#user-name").val('');
+    	$("#password").val('');
+    }
+
+    var clearErrorMessage = function() {
+    	$("#error-message").html("");
+    }
 
     $("#login-module").submit(function() {
     	loginRequest();
