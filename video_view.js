@@ -7,22 +7,29 @@ $(function () {
             $("#loading-spinner").addClass('hidden');
             return;
         }
-        console.log("Processing video");
-        console.log(userVideos);
+        //console.log("Processing video");
+        //console.log(userVideos);
         $("#video-table").append(
             userVideos.map(function(videoInfo) {
-                console.log("We got a video");
+                //console.log("We got a video");
                 console.log(videoInfo);
 
                 var newVideoRow = $(".video-row-template").clone(),
                     videoDate = new Date(videoInfo.video_date),
+                    duration = videoInfo.video_duration,
+                    durationString = "Unavailable";
+
+                if(!(duration === null || duration === undefined)) {
                     durationString = videoInfo.video_duration.minutes + ":" +
                                      videoInfo.video_duration.seconds;
+                }
 
                 newVideoRow.find(".video-name").text(videoDate.toGMTString());
                 newVideoRow.find(".video-duration").text(durationString);
+                newVideoRow.data("videoID", videoInfo.video_id);
                 newVideoRow.removeClass('video-row-template');
                 newVideoRow.removeClass('hidden');
+
                 return newVideoRow;
             })
         );
