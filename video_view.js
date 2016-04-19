@@ -26,6 +26,9 @@ $(function () {
 
                 newVideoRow.find(".video-name").text(videoDate.toGMTString());
                 newVideoRow.find(".video-duration").text(durationString);
+                newVideoRow.find(".delete-button").click(function(event) {
+                    deleteVideoRow($(this).parents("tr").get(0));
+                });
                 newVideoRow.data("videoID", videoInfo.video_id);
                 newVideoRow.removeClass('video-row-template');
                 newVideoRow.removeClass('hidden');
@@ -50,6 +53,14 @@ $(function () {
             console.log(jqXHR);
         }
     });
+
+    var deleteVideoRow = function(row) {
+        row.remove();
+        if($('#video-table tr').length === 1) {
+            $('#video-table').addClass('hidden');
+            $('#no-videos-message').removeClass('hidden');
+        }
+    };
 
 
 
