@@ -12,7 +12,6 @@ $(function () {
         $("#video-table").append(
             userVideos.map(function(videoInfo) {
                 //console.log("We got a video");
-                console.log(videoInfo);
 
                 var newVideoRow = $(".video-row-template").clone(),
                     videoDate = new Date(videoInfo.video_date),
@@ -27,7 +26,27 @@ $(function () {
                 newVideoRow.find(".video-name").text(videoDate.toGMTString());
                 newVideoRow.find(".video-duration").text(durationString);
                 newVideoRow.find(".delete-button").click(function(event) {
-                    deleteVideoRow($(this).parents("tr").get(0));
+                    $(this).prop('disabled', true);
+
+                    var row = $(this).parents("tr"),
+                        videoID = row.data("videoID");
+
+
+                    $.ajax({
+                        type: "DELETE",
+                        url: 'https://stream-cam.herokuapp.com/api/v1/videos/' + videoID,
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        headers: {
+                            "token":localStorage.StreamCamToken,
+                        },
+                        success: function() {
+                            deleteVideoRow(row);
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            $(this).prop('disabled', false);
+                        }
+                    });
                 });
                 newVideoRow.data("videoID", videoInfo.video_id);
                 newVideoRow.removeClass('video-row-template');
@@ -61,7 +80,5 @@ $(function () {
             $('#no-videos-message').removeClass('hidden');
         }
     };
-
-
 
 });
