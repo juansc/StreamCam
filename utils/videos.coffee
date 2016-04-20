@@ -1,6 +1,7 @@
 token = require '../utils/token'
 db_client = require '../database/database_client'
 moment = require 'moment'
+async = require 'async'
 
 exports.createVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
@@ -133,3 +134,64 @@ exports.getUserVideos = (req, res) ->
         message: "Server Error"
     res.status(200).json
       user_videos: result.rows
+
+exports.deleteUserVideo = (req, res) ->
+  user_token = req.body.token or req.headers['token'] if req
+  unless user_token
+    return res.status(403).json
+      status: 403
+      message: "Forbidden action"
+
+  video_to_delete = req.params.video_id
+
+  unless video_to_delete
+    return res.status(400).json
+      status: 400
+      message: "Video id not specified"
+
+  decoded = token.decodeToken user_token
+  unless decoded
+    return res.status(400).json
+      status: 400
+      message: "Invalid token"
+
+  db_client.query
+    text: "SELECT EXISTS(
+           SELECT 1 FROM
+           users INNER JOIN user_videos USING (user_id)
+           WHERE video_id=$1 AND username=$2)"
+    values: [video_to_delete, decoded.user]
+  , (err, result) ->
+    if err
+      return res.status(500).json
+        status: 500
+        message: "Server Error"
+    if !result.rows[0].exists
+      return res.status(403).json
+        status: 403
+        message: "Unauthorized action."
+    else
+      async.parallel
+        delete_video: (callback) ->
+          db_client.query
+            text: "DELETE FROM user_videos *
+                   WHERE video_id=$1"
+            values: [video_to_delete]
+          , (err, res) ->
+            callback(null, not err)
+        delete_manifests: (callback)->
+          db_client.query
+            text: "DELETE FROM video_manifests *
+                   WHERE video_id=$1"
+            values: [video_to_delete]
+          , (err, res) ->
+            callback(null, not err)
+      , (err, result) ->
+        if result.delete_video and result.delete_manifests
+          return res.status(200).json
+            status: 200
+            message: "Video deleted"
+        else
+          return res.status(500).json
+            status: 500
+            message: "Server Error"
