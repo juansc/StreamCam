@@ -7,7 +7,7 @@ $(function () {
         var requestObject = JSON.stringify({
                 user: username,
                password: password,
-            });
+        });
 
         $.ajax({
             type: "POST",

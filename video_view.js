@@ -1,5 +1,13 @@
 $(function () {
 
+    var deleteVideoRow = function(row) {
+        row.remove();
+        if($('#video-table tr').length === 1) {
+            $('#video-table').addClass('hidden');
+            $('#no-videos-message').removeClass('hidden');
+        }
+    };
+
     var fillTable = function(response) {
         var userVideos = response.user_videos;
         if(userVideos.length === 0) {
@@ -73,12 +81,10 @@ $(function () {
         }
     });
 
-    var deleteVideoRow = function(row) {
-        row.remove();
-        if($('#video-table tr').length === 1) {
-            $('#video-table').addClass('hidden');
-            $('#no-videos-message').removeClass('hidden');
-        }
-    };
+    $("#sign-out-btn").click(function(event) {
+        localStorage.removeItem("StreamCamToken");
+        localStorage.removeItem("StreamCamUser");
+        window.location.href = "index.html";
+    });
 
 });
