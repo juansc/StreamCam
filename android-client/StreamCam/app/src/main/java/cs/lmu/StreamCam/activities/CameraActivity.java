@@ -27,6 +27,8 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -65,6 +67,8 @@ public class CameraActivity extends AppCompatActivity {
     private int mCurrentVideoID;
     private Location mCurrentLocation;
     private String mAddress;
+    private boolean requestingLocation;
+    private ImageButton mLocationButton;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -152,7 +156,7 @@ public class CameraActivity extends AppCompatActivity {
         setupLocationMessageReceiver();
 
         mTravelLog = new TravelLog();
-
+        requestingLocation = false;
 
         setContentView(R.layout.activity_camera);
         Log.d(TAG, "We've started the camera activity");
@@ -161,6 +165,7 @@ public class CameraActivity extends AppCompatActivity {
         mLatitudeTextView = (TextView) findViewById(R.id.latitudeValue);
         mLongitudeTextView = (TextView) findViewById(R.id.longitudeValue);
         mAddressTextView = (TextView) findViewById(R.id.addressValue);
+        mLocationButton = (ImageButton) findViewById(R.id.locationButton);
 
         updateLocationDisplay(null, null);
 
@@ -384,12 +389,23 @@ public class CameraActivity extends AppCompatActivity {
 
     public void recordButtonHit(View view) {
         if(isStreaming){
-            endLocationServices();
+            if(requestingLocation) {
+                endLocationServices();
+            }
             updateLocationDisplay(null, null);
         } else {
             createNewVideoRequest();
         }
         isStreaming = !isStreaming;
+        toggleLocationButton();
+    }
+
+    public void toggleLocationButton(){
+        mLocationButton.setEnabled(!mLocationButton.isEnabled());
+    }
+
+    public void locationButtonHit(View view) {
+        requestingLocation = !requestingLocation;
     }
 
     private void beginLocationServices() {
@@ -436,7 +452,9 @@ public class CameraActivity extends AppCompatActivity {
             try{
                 mCurrentVideoID = (int) response.get("video_id");
                 Toast.makeText(CameraActivity.this, "We got a video!!", Toast.LENGTH_SHORT).show();
-                beginLocationServices();
+                if(requestingLocation) {
+                    beginLocationServices();
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
