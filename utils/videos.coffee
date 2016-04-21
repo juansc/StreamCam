@@ -18,13 +18,16 @@ exports.createVideo = (req, res) ->
 
   user = decoded.user
   video_timestamp = req.body.video_timestamp if req.body.video_timestamp
+  console.log video_timestamp
   unless video_timestamp
     video_timestamp = moment().format()
+
+  video_timestamp = moment().format()
 
   db_client.query
     text: "WITH new_video_id AS (
                INSERT INTO videos(video_date)
-               values(date '#{video_timestamp}')
+               values(timestamp '#{video_timestamp}')
                returning video_id
            ) INSERT INTO user_videos(user_id, video_id)
            values(
