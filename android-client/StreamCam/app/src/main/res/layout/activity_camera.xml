@@ -77,16 +77,15 @@
         android:layout_marginBottom="106dp" />
 
     <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:id="@+id/locationButton"
         android:contentDescription="@string/CAMERA_record_button"
-        android:src="@android:drawable/ic_menu_mylocation"
-        android:background="#00ffffff"
         android:layout_marginEnd="33dp"
         android:layout_alignTop="@+id/CAMERA_record_button"
         android:layout_alignEnd="@+id/longitudeValue"
-        android:onClick="locationButtonHit" />
-
+        android:onClick="locationButtonHit"
+        android:background="@drawable/circularbuttonshape"
+        android:src="@mipmap/location_off" />
 
 </RelativeLayout>
