@@ -1,8 +1,8 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0099cc"
+    android:background="#000000"
     tools:context="juanscarrillo.streamcam.CameraActivity"
     android:orientation="vertical">
 
@@ -11,81 +11,107 @@
         android:layout_height="wrap_content"
         android:id="@+id/surfaceView" />
 
-    <ImageButton
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:id="@+id/CAMERA_record_button"
-        android:contentDescription="@string/CAMERA_record_button"
-        android:layout_marginBottom="71dp"
-        android:src="@drawable/record_circle"
-        android:background="@drawable/circular_button_shape"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:onClick="recordButtonHit" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layout_gravity="center|top"
+        android:visibility="visible"
+        android:gravity="center_horizontal|top"
+        android:layout_weight="3">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Latitude:"
-        android:id="@+id/latitudeText"
-        android:textColor="#FF00FF"
-        android:layout_marginTop="41dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Latitude:"
+                android:id="@+id/latitudeText"
+                android:textColor="#FF00FF"
+                android:layout_marginTop="41dp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Longitude:"
-        android:id="@+id/longitudeText"
-        android:textColor="#FF00FF"
-        android:layout_below="@+id/latitudeText"
-        android:layout_alignStart="@+id/latitudeText" />
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Longitude:"
+                android:id="@+id/longitudeText"
+                android:textColor="#FF00FF"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/latitudeValue"
-        android:layout_alignParentEnd="true"
-        android:layout_alignTop="@+id/latitudeText"
-        android:layout_above="@+id/longitudeText"
-        android:layout_toEndOf="@+id/latitudeText"
-        android:textColor="#FF00FF"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/latitudeValue"
+                android:textColor="#FF00FF"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/longitudeValue"
-        android:layout_alignParentEnd="true"
-        android:layout_alignTop="@+id/longitudeText"
-        android:layout_toEndOf="@+id/longitudeText"
-        android:textColor="#FF00FF"
-        android:layout_alignBottom="@+id/longitudeText"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/longitudeValue"
+            android:textColor="#FF00FF"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/addressValue"
-        android:textColor="#FF00FF"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_above="@+id/CAMERA_record_button"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="106dp" />
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FF00FF"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <ImageButton
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:id="@+id/locationButton"
-        android:contentDescription="@string/CAMERA_record_button"
-        android:layout_marginEnd="32dp"
-        android:onClick="locationButtonHit"
-        android:background="@drawable/circular_button_shape"
-        android:src="@mipmap/location_off"
-        android:layout_alignBottom="@+id/CAMERA_record_button"
-        android:layout_alignEnd="@+id/longitudeValue" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/addressValue"
+            android:textColor="#FF00FF"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_alignParentStart="true"
+            android:layout_marginBottom="106dp" />
+    </LinearLayout>
 
-</RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="119dp"
+        android:orientation="horizontal"
+        android:layout_gravity="center_horizontal|bottom"
+        android:visibility="visible"
+        android:gravity="center_horizontal|top"
+        android:layout_weight="0.42">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:id="@+id/imageView"
+            android:src="@android:drawable/btn_star_big_off"
+            android:layout_marginStart="32dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true" />
+
+        <ImageButton
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:id="@+id/CAMERA_record_button"
+            android:contentDescription="@string/CAMERA_record_button"
+            android:src="@drawable/record_circle"
+            android:background="@drawable/circular_button_shape"
+            android:onClick="recordButtonHit"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
+
+        <ImageButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:id="@+id/locationButton"
+            android:onClick="locationButtonHit"
+            android:background="@drawable/circular_button_shape"
+            android:src="@mipmap/location_off"
+            android:layout_weight="0"
+            android:layout_marginEnd="34dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true" />
+
+    </RelativeLayout>
+
+
+</FrameLayout>
+

@@ -46,7 +46,6 @@ import cs.lmu.StreamCam.Utils.Constants;
 import cs.lmu.StreamCam.Utils.Timestamp;
 import cs.lmu.StreamCam.services.HTTPRequestService;
 import cs.lmu.StreamCam.services.LocationService;
-import cs.lmu.StreamCam.Utils.TravelLog;
 
 // TODO: Need to implement receiver for POST location
 public class CameraActivity extends AppCompatActivity {
@@ -57,7 +56,6 @@ public class CameraActivity extends AppCompatActivity {
     private TextView mLatitudeTextView;
     private TextView mLongitudeTextView;
     private TextView mAddressTextView;
-    private TravelLog mTravelLog;
     private boolean isStreaming;
     private BroadcastReceiver mLocationMessageReceiver;
     SharedPreferences mPreferences;
@@ -155,7 +153,6 @@ public class CameraActivity extends AppCompatActivity {
 
         setupLocationMessageReceiver();
 
-        mTravelLog = new TravelLog();
         mRequestingLocation = false;
 
         setContentView(R.layout.activity_camera);
@@ -219,8 +216,8 @@ public class CameraActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-        closeCamera();
-        closeBackgroundThread();
+        //closeCamera();
+        //closeBackgroundThread();
 
         super.onPause();
     }

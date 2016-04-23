@@ -19,6 +19,7 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 
+import cs.lmu.StreamCam.Utils.ConnectivityMonitor;
 import cs.lmu.StreamCam.Utils.Constants;
 import cs.lmu.StreamCam.Utils.CustomDiagnostic;
 
@@ -55,6 +56,12 @@ public class LoginScreen extends AppCompatActivity {
     }
 
     public void loginButtonClicked(View view) {
+        if(!ConnectivityMonitor.hasConnection(this)) {
+            Toast.makeText(getApplicationContext(),
+                           "No internet connection.",
+                            Toast.LENGTH_SHORT).show();
+            return;
+        }
         mUsernameString = mUsernameText.getText().toString().trim();
         mPasswordString = mPasswordText.getText().toString();
 

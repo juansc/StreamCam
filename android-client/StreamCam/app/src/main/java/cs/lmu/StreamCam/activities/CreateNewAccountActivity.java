@@ -27,6 +27,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 
 import cs.lmu.StreamCam.R;
+import cs.lmu.StreamCam.Utils.ConnectivityMonitor;
 import cs.lmu.StreamCam.Utils.Constants;
 import cs.lmu.StreamCam.Utils.CustomDiagnostic;
 import cs.lmu.StreamCam.Utils.UI;
@@ -68,6 +69,12 @@ public class CreateNewAccountActivity extends AppCompatActivity {
     }
 
     public void createAccountButtonClicked(View view) {
+        if(!ConnectivityMonitor.hasConnection(this)) {
+            Toast.makeText(getApplicationContext(),
+                    "No internet connection.",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
         mUsername = mUsernameText.getText().toString().trim();
         mPassword = mPasswordText.getText().toString();
         mConfirmPassword = mPasswordConfirmText.getText().toString();

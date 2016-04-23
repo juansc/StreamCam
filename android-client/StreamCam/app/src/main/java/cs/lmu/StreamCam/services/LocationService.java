@@ -18,15 +18,11 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.text.DateFormat;
 import java.util.Date;
 
 import cs.lmu.StreamCam.R;
 import cs.lmu.StreamCam.Utils.Constants;
-import cs.lmu.StreamCam.Utils.TravelLog;
 
 /**
  * Created by juanscarrillo on 3/27/16.
