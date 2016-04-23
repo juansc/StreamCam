@@ -68,6 +68,7 @@ public class CameraActivity extends AppCompatActivity {
     private String mAddress;
     private boolean mRequestingLocation;
     private ImageButton mLocationButton;
+    private ImageButton mRecordButton;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -165,6 +166,7 @@ public class CameraActivity extends AppCompatActivity {
         mLongitudeTextView = (TextView) findViewById(R.id.longitudeValue);
         mAddressTextView = (TextView) findViewById(R.id.addressValue);
         mLocationButton = (ImageButton) findViewById(R.id.locationButton);
+        mRecordButton = (ImageButton) findViewById(R.id.CAMERA_record_button);
 
         updateLocationDisplay(null, null);
 
@@ -388,19 +390,27 @@ public class CameraActivity extends AppCompatActivity {
 
     public void recordButtonHit(View view) {
         if(isStreaming){
+            mRecordButton.setImageResource(R.drawable.record_circle);
             if(mRequestingLocation) {
                 endLocationServices();
             }
             updateLocationDisplay(null, null);
         } else {
+            mRecordButton.setImageResource(R.drawable.record_square);
             createNewVideoRequest();
         }
         isStreaming = !isStreaming;
         toggleLocationButtonEnabled();
     }
 
+
     public void toggleLocationButtonEnabled(){
         mLocationButton.setEnabled(!mLocationButton.isEnabled());
+        if(mLocationButton.isEnabled()) {
+            mLocationButton.setBackgroundResource(R.drawable.circular_button_shape);
+        } else {
+            mLocationButton.setBackgroundResource(0);
+        }
     }
 
     public void locationButtonHit(View view) {

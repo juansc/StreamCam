@@ -12,13 +12,13 @@
         android:id="@+id/surfaceView" />
 
     <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:id="@+id/CAMERA_record_button"
         android:contentDescription="@string/CAMERA_record_button"
         android:layout_marginBottom="71dp"
-        android:src="@android:drawable/ic_menu_camera"
-        android:background="#00ffffff"
+        android:src="@drawable/record_circle"
+        android:background="@drawable/circular_button_shape"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:onClick="recordButtonHit" />
@@ -81,11 +81,11 @@
         android:layout_height="50dp"
         android:id="@+id/locationButton"
         android:contentDescription="@string/CAMERA_record_button"
-        android:layout_marginEnd="33dp"
-        android:layout_alignTop="@+id/CAMERA_record_button"
-        android:layout_alignEnd="@+id/longitudeValue"
+        android:layout_marginEnd="32dp"
         android:onClick="locationButtonHit"
-        android:background="@drawable/circularbuttonshape"
-        android:src="@mipmap/location_off" />
+        android:background="@drawable/circular_button_shape"
+        android:src="@mipmap/location_off"
+        android:layout_alignBottom="@+id/CAMERA_record_button"
+        android:layout_alignEnd="@+id/longitudeValue" />
 
 </RelativeLayout>
