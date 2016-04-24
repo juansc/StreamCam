@@ -28,6 +28,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +43,7 @@ import java.util.List;
 
 
 import cs.lmu.StreamCam.R;
+import cs.lmu.StreamCam.Utils.ConnectivityMonitor;
 import cs.lmu.StreamCam.Utils.Constants;
 import cs.lmu.StreamCam.Utils.Timestamp;
 import cs.lmu.StreamCam.services.HTTPRequestService;
@@ -67,6 +69,7 @@ public class CameraActivity extends AppCompatActivity {
     private boolean mRequestingLocation;
     private ImageButton mLocationButton;
     private ImageButton mRecordButton;
+    private ImageView mConnectivityView;
 
     // This is the texture where we will see the video that is being recorded
     private TextureView mTextureView;
@@ -164,6 +167,11 @@ public class CameraActivity extends AppCompatActivity {
         mAddressTextView = (TextView) findViewById(R.id.addressValue);
         mLocationButton = (ImageButton) findViewById(R.id.locationButton);
         mRecordButton = (ImageButton) findViewById(R.id.CAMERA_record_button);
+        mConnectivityView = (ImageView) findViewById(R.id.connectivity_icon);
+
+        if(ConnectivityMonitor.hasConnection(this)) {
+            mConnectivityView.setImageResource(R.mipmap.has_connection);
+        }
 
         updateLocationDisplay(null, null);
 
