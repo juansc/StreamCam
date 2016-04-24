@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -36,7 +37,8 @@ public class LoginScreen extends AppCompatActivity {
     private EditText mPasswordText;
     private SharedPreferences mPrefs;
     private LoginResultReceiver mResultReceiver;
-
+    private Button mLoginButton;
+    private Button mCreateAccountButton;
     private final String TAG = LoginScreen.class.getSimpleName();
 
     @Override
@@ -49,6 +51,9 @@ public class LoginScreen extends AppCompatActivity {
         mUsernameText = (EditText) findViewById(R.id.LOGIN_username_text);
         mPasswordText = (EditText) findViewById(R.id.LOGIN_password_text);
         mProgressBar = (ProgressBar) findViewById(R.id.LOGIN_progress_bar);
+        mLoginButton = (Button) findViewById(R.id.LOGIN_login_button);
+        mCreateAccountButton = (Button) findViewById(R.id.LOGIN_create_account_button);
+
 
         mResultReceiver = new LoginResultReceiver(new Handler());
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -74,10 +79,21 @@ public class LoginScreen extends AppCompatActivity {
                     Toast.LENGTH_SHORT).show();
         } else{
             createLoginRequest();
+            deactivateButtons();
             mProgressBar.setVisibility(View.VISIBLE);
         }
         UI.hideKeyboard(this);
 
+    }
+
+    public void deactivateButtons() {
+        mLoginButton.setEnabled(false);
+        mCreateAccountButton.setEnabled(false);
+    }
+
+    public void activateButtons() {
+        mLoginButton.setEnabled(true);
+        mCreateAccountButton.setEnabled(true);
     }
 
     public void goToCameraActivity() {
@@ -167,6 +183,7 @@ public class LoginScreen extends AppCompatActivity {
                 getApplicationContext(),
                 message,
                 Toast.LENGTH_SHORT).show();
+        activateButtons();
     }
 
     class LoginResultReceiver extends ResultReceiver {
