@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -44,6 +45,7 @@ public class CreateNewAccountActivity extends AppCompatActivity {
     private String mConfirmPassword;
     private SharedPreferences mPrefs;
     private CreateAccountResultReceiver mResultReceiver;
+    private Button mCreateAccountButton;
 
     private static final String TAG = CreateNewAccountActivity.class.getSimpleName();
 
@@ -58,6 +60,7 @@ public class CreateNewAccountActivity extends AppCompatActivity {
         mPasswordText = (EditText) findViewById(R.id.CREATE_ACCOUNT_password);
         mPasswordConfirmText = (EditText) findViewById(R.id.CREATE_ACCOUNT_confirm_password);
         mResultReceiver = new CreateAccountResultReceiver(new Handler());
+        mCreateAccountButton = (Button) findViewById(R.id.CREATE_ACCOUNT_create_account_button);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -87,6 +90,7 @@ public class CreateNewAccountActivity extends AppCompatActivity {
                     inputsDiagnostic.getMessage(),
                     Toast.LENGTH_SHORT).show();
         } else{
+            mCreateAccountButton.setEnabled(false);
             makeNewUserRequest();
         }
         UI.hideKeyboard(this);
@@ -166,6 +170,7 @@ public class CreateNewAccountActivity extends AppCompatActivity {
                 getApplicationContext(),
                 message,
                 Toast.LENGTH_SHORT).show();
+        mCreateAccountButton.setEnabled(true);
     }
 
     class CreateAccountResultReceiver extends ResultReceiver {
