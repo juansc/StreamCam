@@ -472,6 +472,7 @@ public class CameraActivity extends AppCompatActivity {
                 mCurrentVideoID = (int) response.get("video_id");
                 Toast.makeText(CameraActivity.this, "We got a video!!", Toast.LENGTH_SHORT).show();
                 if(mRequestingLocation) {
+                    Log.e(TAG,"Began location service!");
                     beginLocationServices();
                 }
             } catch (JSONException e) {
@@ -507,6 +508,7 @@ public class CameraActivity extends AppCompatActivity {
         intent.putExtra("method", Constants.PUT_METHOD);
         intent.putExtra("httpReceiver", mLocationPostResultReceiver);
         startService(intent);
+        Log.e(TAG, "We've sent it to the server!");
     }
 
     private JSONObject createNewJSONRequestBodyForPostingLocation () {

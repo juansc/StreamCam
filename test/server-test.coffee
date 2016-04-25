@@ -1,7 +1,7 @@
 async = require 'async'
 request = require 'supertest'
 expect = require('chai').expect
-url = 'http://localhost:8080'
+url = 'http://localhost:3000'
 db_client = require '../database/database_client'
 moment = require 'moment'
 
@@ -116,7 +116,7 @@ describe 'StreamCam API', ->
               .put '/api/v1/manifest/1'
               .send {
                 token
-                location: JSON.stringify
+                location:
                   address: '1 LMU Drive'
                   timestamp: timestamp
                   latitude: 2

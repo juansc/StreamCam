@@ -9,16 +9,17 @@
     <TextureView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/surfaceView" />
-
+        android:id="@+id/surfaceView"
+        android:layout_gravity="right|top" />
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="horizontal"
+        android:layout_height="402dp"
+        android:orientation="vertical"
         android:layout_gravity="center|top"
         android:visibility="visible"
         android:gravity="center_horizontal|top"
-        android:layout_weight="3">
+        android:layout_weight="3"
+        android:weightSum="1">
 
         <TextView
                 android:layout_width="wrap_content"
@@ -27,37 +28,33 @@
                 android:text="Latitude:"
                 android:id="@+id/latitudeText"
                 android:textColor="#FF00FF"
-                android:layout_marginTop="41dp"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentStart="true" />
+            android:layout_gravity="left|top" />
 
         <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Longitude:"
-                android:id="@+id/longitudeText"
-                android:textColor="#FF00FF"/>
-
-        <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/latitudeValue"
                 android:textColor="#FF00FF"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_gravity="left" />
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Longitude:"
+                android:id="@+id/longitudeText"
+                android:textColor="#FF00FF"
+            android:layout_gravity="left" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/longitudeValue"
             android:textColor="#FF00FF"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_gravity="left" />
 
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FF00FF"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -65,8 +62,9 @@
             android:id="@+id/addressValue"
             android:textColor="#FF00FF"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:layout_alignParentStart="true"
-            android:layout_marginBottom="106dp" />
+            android:layout_marginBottom="106dp"
+            android:layout_gravity="left" />
+
     </LinearLayout>
 
     <RelativeLayout
@@ -111,6 +109,8 @@
             android:layout_alignParentEnd="true" />
 
     </RelativeLayout>
+
+
 
 
 </FrameLayout>

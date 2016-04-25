@@ -107,6 +107,7 @@ public class LocationService extends Service implements
                 return;
             }
             startAddressIntentService();
+            Log.e(TAG, "We've sent the first address!!!");
         }
 
         Log.e(TAG, "We have gotten the first address!!!");
