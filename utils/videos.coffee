@@ -198,14 +198,16 @@ exports.getVideoManifest = (req, res) ->
         values: [video_id]
         , (err, result) ->
           return error_builder.serverErrorResponse res if err
-
-          manifest = "Locations for video #{video_id}\n\n"
-          for row in result.rows
-            manifest_row = "Time: #{row.location_timestamp}
-                            Address: #{row.address}
-                            Long: #{row.longitude}
-                            Lat: #{row.latitude}"
-            manifest += manifest_row + "\n\n"
+          if result.rows.length is 0
+            manifest = "No locations for video #{video_id}"
+          else
+            manifest = "Locations for video #{video_id}\n\n"
+            for row in result.rows
+              manifest_row = "Time: #{row.location_timestamp}
+                              Address: #{row.address}
+                              Long: #{row.longitude}
+                              Lat: #{row.latitude}"
+              manifest += manifest_row + "\n\n"
 
           manifest_file_name = "#{video_id}_manifest.txt"
           fs.writeFile manifest_file_name, manifest, (err, data) ->
