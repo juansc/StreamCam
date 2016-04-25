@@ -44,6 +44,7 @@ app.all '/api/v1/videos', methodNotAllowed
 
 
 app.put '/api/v1/manifest/:video_id', videos.appendManifestToVideo
+app.get '/api/v1/manifest/:video_id', videos.getVideoManifest
 
 app.listen port
 

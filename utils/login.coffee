@@ -1,5 +1,6 @@
 db_client = require '../database/database_client'
 token = require '../utils/token'
+error_builder = require '../utils/error_builder'
 
 exports.authenticateUser = (req, res) ->
   data = req.body
@@ -7,7 +8,7 @@ exports.authenticateUser = (req, res) ->
     return res.status(400).json
       status: 400
       message: "Please provide a username and password"
-  # Check that the user exists
+
   db_client.query
     text: "SELECT EXISTS(
            SELECT 1 FROM users
@@ -15,10 +16,8 @@ exports.authenticateUser = (req, res) ->
            )"
     values: [data.user]
   , (err, result) ->
-    if err
-      return res.status(500).json
-        status: 500
-        message: "Server Error"
+    return error_builder.serverErrorResponse res if err
+
     if not result.rows[0].exists
       return res.status(404).json
         status: 404
@@ -33,12 +32,10 @@ exports.authenticateUser = (req, res) ->
                )"
         values: [data.user, data.password]
       , (err, result) ->
-        if err
-          return res.json
-            status: 500
-            message: "Server Error"
+        return error_builder.serverErrorResponse res if err
+
         if result.rows[0].exists
-          return res.json
+          return res.status(200).json
             status: 200
             message: "Authentication succeeded."
             token: token.generateToken data.user
@@ -52,7 +49,6 @@ exports.createNewUser = (req, res) ->
   username = data.user
   password = data.password
 
-  #console.log "Username is #{username} and password #{password}"
   if password.length < 8
     return res.status(400).json
       status: 400
@@ -65,13 +61,9 @@ exports.createNewUser = (req, res) ->
   , (err, result) ->
     if err
       if err.code is '23505'
-        return res.status(409).json
-          status: 409
-          message: "Username already exists."
-      console.log err
-      return res.status(500).json
-        status: 500
-        message: "Server error."
+        return error_builder.userAlreadyExistsResponse res
+
+      return error_builder.serverErrorResponse res
     res.status(200).json
       status: 200
       message:"Account successfully created."

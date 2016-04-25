@@ -2,27 +2,22 @@ token = require '../utils/token'
 db_client = require '../database/database_client'
 moment = require 'moment'
 async = require 'async'
+fs = require 'fs'
+error_builder = require '../utils/error_builder'
 
 exports.createVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
-  unless user_token
-    return res.status(403).json
-      status: 403
-      message: "Forbidden action."
+
+  return error_builder.UnauthorizedActionResponse res unless user_token
 
   decoded = token.decodeToken user_token
-  unless decoded
-    return res.status(400).json
-      status: 400
-      message: "Invalid token."
+  return error_builder.invalidTokenResponse res unless decoded
 
   user = decoded.user
   video_timestamp = req.body.video_timestamp if req.body.video_timestamp
-  console.log video_timestamp
+
   unless video_timestamp
     video_timestamp = moment().format()
-
-  video_timestamp = moment().format()
 
   db_client.query
     text: "WITH new_video_id AS (
@@ -36,10 +31,7 @@ exports.createVideo = (req, res) ->
            ) returning video_id"
   , (err, results) ->
     if err
-      console.log err
-      return res.status(500).json
-        status: 500
-        message: "Server error."
+      return error_builder.serverErrorResponse res
     res.status(200).json
       status: 200
       message:"Video successfully created."
@@ -47,16 +39,12 @@ exports.createVideo = (req, res) ->
 
 exports.appendManifestToVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
-  unless user_token
-    return res.status(403).json
-      status: 403
-      message: "Forbidden action"
+
+  return error_builder.UnauthorizedActionResponse res unless user_token
 
   decoded = token.decodeToken user_token
-  unless decoded
-    return res.status(400).json
-      status: 400
-      message: "Invalid token"
+
+  return error_builder.invalidTokenResponse res unless decoded
 
   unless req.body.location
     return res.status(400).json
@@ -75,14 +63,10 @@ exports.appendManifestToVideo = (req, res) ->
            WHERE video_id=$1 AND username=$2)"
     values: [video_id, decoded.user]
   , (err, result) ->
-    if err
-      return res.status(500).json
-        status: 500
-        message: "Server Error"
+    return error_builder.serverErrorResponse res if err
+
     if !result.rows[0].exists
-      return res.status(403).json
-        status: 403
-        message: "Authorization failed."
+      return error_builder.UnauthorizedActionResponse err
     else
       db_client.query
         text: "INSERT INTO video_manifests
@@ -97,31 +81,23 @@ exports.appendManifestToVideo = (req, res) ->
           location.longitude
         ]
       , (err, result) ->
-        if err
-          return res.status(500).json
-            status: 500
-            message: "Server Error"
-        return res.status(200).json
+        return error_builder.serverErrorResponse res if err
+
+        res.status(200).json
           status: 200
           message: "Location added succesfully"
 
 exports.getUserVideos = (req, res) ->
   user_token = req.body.token or req.headers['token'] if req
-  unless user_token
-    return res.status(403).json
-      status: 403
-      message: "Forbidden action"
+
+  return error_builder.UnauthorizedActionResponse res unless user_token
 
   decoded = token.decodeToken user_token
-  unless decoded
-    return res.status(400).json
-      status: 400
-      message: "Invalid token"
+
+  return error_builder.invalidTokenResponse res unless decoded
 
   unless decoded.user is req.params.user
-    return res.status(403).json
-      status: 403
-      message: "Unauthorized request"
+    return error_builder.UnauthorizedActionResponse res
 
   db_client.query
     text: "SELECT video_id, video_duration, video_date
@@ -131,19 +107,14 @@ exports.getUserVideos = (req, res) ->
               WHERE username=$1"
     values: [decoded.user]
   , (err, result) ->
-    if err
-      return res.status(500).json
-        status: 500
-        message: "Server Error"
+    return error_builder.serverErrorResponse res if err
     res.status(200).json
       user_videos: result.rows
 
 exports.deleteUserVideo = (req, res) ->
   user_token = req.body.token or req.headers['token'] if req
-  unless user_token
-    return res.status(403).json
-      status: 403
-      message: "Forbidden action"
+
+  return error_builder.UnauthorizedActionResponse res unless user_token
 
   video_to_delete = req.params.video_id
 
@@ -153,10 +124,7 @@ exports.deleteUserVideo = (req, res) ->
       message: "Video id not specified"
 
   decoded = token.decodeToken user_token
-  unless decoded
-    return res.status(400).json
-      status: 400
-      message: "Invalid token"
+  return error_builder.invalidTokenResponse res unless decoded
 
   db_client.query
     text: "SELECT EXISTS(
@@ -165,14 +133,10 @@ exports.deleteUserVideo = (req, res) ->
            WHERE video_id=$1 AND username=$2)"
     values: [video_to_delete, decoded.user]
   , (err, result) ->
-    if err
-      return res.status(500).json
-        status: 500
-        message: "Server Error"
+    return error_builder.serverErrorResponse res if err
+
     if !result.rows[0].exists
-      return res.status(403).json
-        status: 403
-        message: "Unauthorized action."
+      return error_builder.UnauthorizedActionResponse res
     else
       async.parallel
         delete_video: (callback) ->
@@ -195,6 +159,57 @@ exports.deleteUserVideo = (req, res) ->
             status: 200
             message: "Video deleted"
         else
-          return res.status(500).json
-            status: 500
-            message: "Server Error"
+          return error_builder.serverErrorResponse res
+
+exports.getVideoManifest = (req, res) ->
+  user_token = req.body.token or req.headers['token'] if req
+
+  return exports.UnauthorizedActionResponse err unless user_token
+
+  video_id = req.params.video_id
+
+  unless video_id
+    return res.status(400).json
+      status: 400
+      message: "Video id not specified"
+
+  decoded = token.decodeToken user_token
+  return error_builder.invalidTokenResponse res unless decoded
+
+  db_client.query
+    text: "SELECT EXISTS(
+           SELECT 1 FROM
+           users INNER JOIN user_videos USING (user_id)
+           WHERE video_id=$1 AND username=$2)"
+    values: [video_id, decoded.user]
+  , (err, result) ->
+    return error_builder.serverErrorResponse res if err
+
+    if !result.rows[0].exists
+      return error_builder.UnauthorizedActionResponse res
+    else
+      db_client.query
+        text: "SELECT
+               location_timestamp,
+               address,
+               latitude,
+               longitude
+               FROM video_manifests WHERE video_id=$1;"
+        values: [video_id]
+        , (err, result) ->
+          return error_builder.serverErrorResponse res if err
+
+          manifest = "Locations for video #{video_id}\n\n"
+          for row in result.rows
+            manifest_row = "Time: #{row.location_timestamp}
+                            Address: #{row.address}
+                            Long: #{row.longitude}
+                            Lat: #{row.latitude}"
+            manifest += manifest_row + "\n\n"
+
+          manifest_file_name = "#{video_id}_manifest.txt"
+          fs.writeFile manifest_file_name, manifest, (err, data) ->
+            return error_builder.serverErrorResponse res if err
+
+            res.download manifest_file_name, (err) ->
+              fs.unlink manifest_file_name
