@@ -66,10 +66,6 @@ exports.appendManifestToVideo = (req, res) ->
     if !result.rows[0].exists
       return res_builder.UnauthorizedActionResponse err
     else
-      console.log "The location we will insert is #{location}"
-      console.log "The location timestamp is #{location.timestamp}"
-      console.log "#{location.address}"
-      console.log "#{typeof location}"
       db_client.query
         text: "INSERT INTO video_manifests
                (video_id, location_timestamp, address, latitude, longitude)
@@ -83,7 +79,7 @@ exports.appendManifestToVideo = (req, res) ->
           location.longitude
         ]
       , (err, result) ->
-        console.log err
+        console.log err if err
         return res_builder.serverErrorResponse res if err
 
         res.status(200).json
