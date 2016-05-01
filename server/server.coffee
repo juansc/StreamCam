@@ -39,12 +39,12 @@ app.all '/api/v1/authenticate', methodNotAllowed
 
 app.post '/api/v1/videos', videos.createVideo
 app.get '/api/v1/videos/:user', videos.getUserVideos
+app.post '/api/v1/videos/:video_id', videos.modifyVideo
 app.delete '/api/v1/videos/:video_id', videos.deleteUserVideo
 app.all '/api/v1/videos', methodNotAllowed
 
 
 app.put '/api/v1/manifest/:video_id', videos.appendManifestToVideo
-app.get '/api/v1/manifest/:video_id', videos.getVideoManifest
 
 app.listen port
 

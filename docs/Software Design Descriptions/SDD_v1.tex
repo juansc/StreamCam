@@ -153,7 +153,7 @@ The Android client will communicate with the StreamCam API and make general requ
 \begin{enumerate}
   \item The Android client can notify the server if the phone is about to start or end a stream.
   \item The Android client can post the user's location when recording a video. 
-  \item The web client can request to view the user's videos.
+  \item The web client can request to view a listing of the user's videos.
   \item The web client can request to download a user's videos.
   \item The web client can request to delete a user's videos.
 \end{enumerate}
@@ -166,7 +166,7 @@ I make use the \textbf{pg} Node library, which allows me to write server-side Co
 
 My system will use a simple three-tier architecture. It will constist of clients, a server that will handle all the logic and requests from users, and a database that will store user information. 
 
-While this may change depending on what works best with the streaming library \textbf{libstreaming} that I am using, for now I consider a system where the Android phone serves as an RTP server that streams video to a VLC client on the side of the StreamCam server. 
+I have a three-tier architecture with three different servers that are used for specialized purposes. I have used a github server to host the web client. I have used an Amazon EC2 server to host the Wowza Streaming Engine, which allows users to stream their videos from their phones to the server. I also have a Heroku server which manages users and videos. This Heroku server is the central hub, as it handles all the logic from the clients and interfaces with the Amazon server to work with the streaming services. 
 
 \subsubsection{Major Software Components}
 The major software components can be broken down into Android Client, Web Client, and Server. 

@@ -37,6 +37,46 @@ exports.createVideo = (req, res) ->
       message:"Video successfully created."
       video_id: results.rows[0].video_id
 
+exports.modifyVideo = (req, res) ->
+  user_token = req.body.token or req.headers['x-access-token'] if req
+  return res_builder.UnauthorizedActionResponse res unless user_token
+
+  decoded = token.decodeToken user_token
+  return res_builder.invalidTokenResponse res unless decoded
+
+  video_id = req.params.video_id
+  return res_builder.unspecifiedVideoResponse err unless video_id
+
+  video_state = req.body.video_state if req
+  return res_builder.noVideoStateResponse err unless video_state
+
+  db_client.query
+    text: "SELECT EXISTS(
+           SELECT 1 FROM
+           users INNER JOIN user_videos USING (user_id)
+           WHERE video_id=$1 AND username=$2)"
+    values: [video_id, decoded.user]
+  , (err, result) ->
+    console.log err
+    return res_builder.serverErrorResponse res if err
+
+    if !result.rows[0].exists
+      return res_builder.UnauthorizedActionResponse err
+    else
+      db_client.query
+        text: "UPDATE videos
+               SET video_status='closed'
+               WHERE video_id=$1"
+        values: [video_id]
+      , (err, result) ->
+        console.log err if err
+        return res_builder.serverErrorResponse res if err
+
+        res.status(200).json
+          status: 200
+          message: "Video updated succesfully"
+
+
 exports.appendManifestToVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
   return res_builder.UnauthorizedActionResponse res unless user_token
@@ -46,7 +86,6 @@ exports.appendManifestToVideo = (req, res) ->
 
   location = req.body.location
   return res_builder.noLocationIncludedResponse res unless location
-  console.log location
 
   video_id = req.params.video_id
   return res_builder.unspecifiedVideoResponse err unless video_id
@@ -101,7 +140,8 @@ exports.getUserVideos = (req, res) ->
               FROM
               user_videos INNER JOIN videos USING (video_id)
               INNER JOIN users USING(user_id)
-              WHERE username=$1"
+              WHERE username=$1
+              AND video_state='closed'"
     values: [decoded.user]
   , (err, result) ->
     return res_builder.serverErrorResponse res if err
@@ -153,15 +193,7 @@ exports.deleteUserVideo = (req, res) ->
         else
           return res_builder.serverErrorResponse res
 
-exports.getVideoManifest = (req, res) ->
-  user_token = req.body.token or req.headers['token'] if req
-  return exports.UnauthorizedActionResponse err unless user_token
-
-  video_id = req.params.video_id
-  return res_builder.unspecifiedVideoResponse res unless video_id
-
-  decoded = token.decodeToken user_token
-  return res_builder.invalidTokenResponse res unless decoded
+exports.makeManifest = (video_id) ->
 
   manifest_file_name = "#{video_id}_manifest.txt"
 
@@ -171,40 +203,24 @@ exports.getVideoManifest = (req, res) ->
         console.log err if err
     else
       db_client.query
-        text: "SELECT EXISTS(
-               SELECT 1 FROM
-               users INNER JOIN user_videos USING (user_id)
-               WHERE video_id=$1 AND username=$2)"
-        values: [video_id, decoded.user]
-      , (err, result) ->
-        return res_builder.serverErrorResponse res if err
+        text: "SELECT
+               location_timestamp,
+               address,
+               latitude,
+               longitude
+               FROM video_manifests WHERE video_id=$1"
+        values: [video_id]
+        , (err, result) ->
+          if result.rows.length is 0
+            manifest = "No locations for video #{video_id}"
+          else
+            manifest = "Locations for video #{video_id}\n\n"
+            for row in result.rows
+              manifest_row = "Time: #{row.location_timestamp}
+                              Address: #{row.address}
+                              Long: #{row.longitude}
+                              Lat: #{row.latitude}"
+              manifest += manifest_row + "\n\n"
 
-        if !result.rows[0].exists
-          return res_builder.UnauthorizedActionResponse res
-        else
-          db_client.query
-            text: "SELECT
-                   location_timestamp,
-                   address,
-                   latitude,
-                   longitude
-                   FROM video_manifests WHERE video_id=$1"
-            values: [video_id]
-            , (err, result) ->
-              return res_builder.serverErrorResponse res if err
-              if result.rows.length is 0
-                manifest = "No locations for video #{video_id}"
-              else
-                manifest = "Locations for video #{video_id}\n\n"
-                for row in result.rows
-                  manifest_row = "Time: #{row.location_timestamp}
-                                  Address: #{row.address}
-                                  Long: #{row.longitude}
-                                  Lat: #{row.latitude}"
-                  manifest += manifest_row + "\n\n"
-
-              fs.writeFile manifest_file_name, manifest, (err, data) ->
-                return res_builder.serverErrorResponse res if err
-
-                res.download manifest_file_name, (err) ->
-                  console.log err if err
+          fs.writeFile manifest_file_name, manifest, (err, data) ->
+            console.log err if err
