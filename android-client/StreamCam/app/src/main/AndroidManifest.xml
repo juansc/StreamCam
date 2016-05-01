@@ -34,7 +34,7 @@
             android:name="cs.lmu.StreamCam.activities.CameraActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/CAMERA_title"
-            android:screenOrientation="portrait"
+            android:screenOrientation="landscape"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

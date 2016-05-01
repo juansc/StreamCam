@@ -6,11 +6,12 @@
     tools:context="juanscarrillo.streamcam.CameraActivity"
     android:orientation="vertical">
 
-    <TextureView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/surfaceView"
-        android:layout_gravity="right|top" />
+    <net.majorkernelpanic.streaming.gl.SurfaceView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/cameraScreen"
+        android:layout_gravity="center" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="402dp"

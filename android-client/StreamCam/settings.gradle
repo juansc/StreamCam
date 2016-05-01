@@ -1,1 +1,2 @@
-include ':app'
+include ':app', 'libstreaming'
+project(':libstreaming').projectDir = new File('libs/libstreaming')

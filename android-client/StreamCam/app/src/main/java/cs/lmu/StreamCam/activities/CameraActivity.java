@@ -5,16 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.params.StreamConfigurationMap;
 import android.location.Location;
-import android.os.HandlerThread;
 import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
@@ -23,24 +14,25 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.util.Size;
-import android.util.SparseIntArray;
-import android.view.Surface;
-import android.view.TextureView;
+
+import android.view.SurfaceHolder;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import net.majorkernelpanic.streaming.Session;
+import net.majorkernelpanic.streaming.SessionBuilder;
+import net.majorkernelpanic.streaming.audio.AudioQuality;
+import net.majorkernelpanic.streaming.gl.SurfaceView;
+import net.majorkernelpanic.streaming.rtsp.RtspClient;
+import net.majorkernelpanic.streaming.video.VideoQuality;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 
 import cs.lmu.StreamCam.R;
 import cs.lmu.StreamCam.Utils.ConnectivityMonitor;
@@ -50,11 +42,12 @@ import cs.lmu.StreamCam.services.HTTPRequestService;
 import cs.lmu.StreamCam.services.LocationService;
 
 // TODO: Need to implement receiver for POST location
-public class CameraActivity extends AppCompatActivity {
+public class CameraActivity extends AppCompatActivity
+        implements Session.Callback,
+                   SurfaceHolder.Callback,
+                   RtspClient.Callback{
     private static final String TAG = CameraActivity.class.getSimpleName();
 
-    private String mCameraID;
-    private Size mPreviewSize;
     private TextView mLatitudeTextView;
     private TextView mLongitudeTextView;
     private TextView mAddressTextView;
@@ -70,89 +63,16 @@ public class CameraActivity extends AppCompatActivity {
     private ImageButton mLocationButton;
     private ImageButton mRecordButton;
     private ImageView mConnectivityView;
+    private SurfaceView mSurfaceView;
+    private Session mSession;
+    private RtspClient mClient;
 
-    // This is the texture where we will see the video that is being recorded
-    private TextureView mTextureView;
-    private TextureView.SurfaceTextureListener mSurfaceTextureListener =
-            new TextureView.SurfaceTextureListener() {
-                @Override
-                public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-                    setupCamera(width, height);
-                    openCamera();
-                }
-
-                @Override
-                public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-
-                }
-
-                @Override
-                public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-                    return false;
-                }
-
-                @Override
-                public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-
-                }
-            };
-
-    // Camera device that we need to request
-    private CameraDevice mCameraDevice;
-    private CameraDevice.StateCallback mCameraDeviceStateCallback
-            = new CameraDevice.StateCallback() {
-        @Override
-        public void onOpened(CameraDevice camera) {
-            mCameraDevice = camera;
-            createCameraPreviewSession();
-            Toast.makeText(getApplicationContext(), "Camera Opened!", Toast.LENGTH_SHORT).show();
-
-        }
-
-        @Override
-        public void onDisconnected(CameraDevice camera) {
-            camera.close();
-            mCameraDevice = null;
-
-        }
-
-        @Override
-        public void onError(CameraDevice camera, int error) {
-            camera.close();
-            mCameraDevice = null;
-        }
-    };
-
-    // This is necessary when asking for images and video from
-    // camera
-    private CaptureRequest mPreviewCaptureRequest;
-    private CaptureRequest.Builder mPreviewCaptureRequestBuilder;
-
-    //
-    private CameraCaptureSession mCameraCaptureSession;
-    private CameraCaptureSession.CaptureCallback mSessionCallback =
-            new CameraCaptureSession.CaptureCallback() {
-                @Override
-                public void onCaptureStarted(CameraCaptureSession session, CaptureRequest request, long timestamp, long frameNumber) {
-                    super.onCaptureStarted(session, request, timestamp, frameNumber);
-
-                }
-            };
-
-    private HandlerThread mBackgroundThread;
-    private Handler mBackgroundHandler;
-
-    private static SparseIntArray ORIENTATIONS = new SparseIntArray();
-    static{
-        ORIENTATIONS.append(Surface.ROTATION_0, 0);
-        ORIENTATIONS.append(Surface.ROTATION_90, 90);
-        ORIENTATIONS.append(Surface.ROTATION_180, 180);
-        ORIENTATIONS.append(Surface.ROTATION_270, 270);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setupLocationMessageReceiver();
 
@@ -161,13 +81,13 @@ public class CameraActivity extends AppCompatActivity {
         setContentView(R.layout.activity_camera);
         Log.d(TAG, "We've started the camera activity");
 
-        mTextureView = (TextureView) findViewById(R.id.surfaceView);
         mLatitudeTextView = (TextView) findViewById(R.id.latitudeValue);
         mLongitudeTextView = (TextView) findViewById(R.id.longitudeValue);
         mAddressTextView = (TextView) findViewById(R.id.addressValue);
         mLocationButton = (ImageButton) findViewById(R.id.locationButton);
         mRecordButton = (ImageButton) findViewById(R.id.CAMERA_record_button);
         mConnectivityView = (ImageView) findViewById(R.id.connectivity_icon);
+        mSurfaceView = (SurfaceView) findViewById(R.id.cameraScreen);
 
         if(ConnectivityMonitor.hasConnection(this)) {
             mConnectivityView.setImageResource(R.mipmap.has_connection);
@@ -179,7 +99,26 @@ public class CameraActivity extends AppCompatActivity {
         mVideoResultReceiver = new CreateVideoResultReceiver(new Handler());
         mLocationPostResultReceiver = new PostLocationResultReceiver(new Handler());
 
+        mSession = SessionBuilder.getInstance()
+                .setContext(getApplicationContext())
+                .setAudioEncoder(SessionBuilder.AUDIO_AAC)
+                .setAudioQuality(new AudioQuality(8000, 16000))
+                .setVideoEncoder(SessionBuilder.VIDEO_H264)
+                .setSurfaceView(mSurfaceView)
+                .setPreviewOrientation(0)
+                .setCallback(this)
+                .build();
+
+        mClient = new RtspClient();
+        mClient.setSession(mSession);
+        mClient.setCallback(this);
+
+        mSurfaceView.setAspectRatioMode(SurfaceView.ASPECT_RATIO_PREVIEW);
+        mSurfaceView.getHolder().addCallback(this);
+
     }
+
+
 
     private void setupLocationMessageReceiver() {
         mLocationMessageReceiver = new BroadcastReceiver() {
@@ -202,7 +141,6 @@ public class CameraActivity extends AppCompatActivity {
         View decorView = getWindow().getDecorView();
         if(hasFocus) {
             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -213,12 +151,64 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        openBackgroundThread();;
+        /*openBackgroundThread();;
         if(mTextureView.isAvailable()){
             setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
             openCamera();
         } else {
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+        }*/
+    }
+
+    @Override
+    public void onSessionStopped() {
+    }
+
+    @Override
+    public void onSessionConfigured() {
+
+    }
+
+
+    @Override
+    public void onSessionStarted() {
+
+    }
+
+    @Override
+    public void onBitrateUpdate(long bitrate) {
+    }
+
+    @Override
+    public void onPreviewStarted() {
+
+    }
+
+    @Override
+    public void onSessionError(int reason, int streamType, Exception e) {
+        switch (reason) {
+            case Session.ERROR_CAMERA_ALREADY_IN_USE:
+                break;
+            case Session.ERROR_CAMERA_HAS_NO_FLASH:
+                break;
+            case Session.ERROR_INVALID_SURFACE:
+                break;
+            case Session.ERROR_STORAGE_NOT_READY:
+                break;
+            case Session.ERROR_CONFIGURATION_NOT_SUPPORTED:
+                VideoQuality quality = mSession.getVideoTrack().getVideoQuality();
+                Log.e(TAG,"The following settings are not supported on this phone: " +
+                        quality.toString() + " " +
+                        "(" + e.getMessage() + ")");
+                e.printStackTrace();
+                return;
+            case Session.ERROR_OTHER:
+                break;
+        }
+
+        if (e != null) {
+            Log.e(TAG,e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -250,7 +240,7 @@ public class CameraActivity extends AppCompatActivity {
         Log.e(TAG, "The address has been set in TextView");
     }
 
-    private void setupCamera(int width, int height) {
+    /*private void setupCamera(int width, int height) {
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             for(String cameraID: cameraManager.getCameraIdList()) {
@@ -269,7 +259,7 @@ public class CameraActivity extends AppCompatActivity {
                 if(inLandscapeMode) {
                     rotatedHeight = width;
                     rotatedWidth = height;
-                }*/
+                }
 
                 mPreviewSize = getPreferredPreviewSize(map.getOutputSizes(SurfaceTexture.class), width, height);
                 mCameraID = cameraID;
@@ -391,7 +381,7 @@ public class CameraActivity extends AppCompatActivity {
         deviceOrientation = ORIENTATIONS.get(deviceOrientation);
         return (sensorOrientation + deviceOrientation + 360) % 360;
 
-    }
+    }*/
 
     public void recordButtonHit(View view) {
         if(isStreaming){
@@ -401,7 +391,7 @@ public class CameraActivity extends AppCompatActivity {
             }
             updateLocationDisplay(null, null);
         } else {
-            mRecordButton.setImageResource(R.drawable.record_square);
+            mRecordButton.setEnabled(false);
             createNewVideoRequest();
         }
         isStreaming = !isStreaming;
@@ -471,6 +461,7 @@ public class CameraActivity extends AppCompatActivity {
             try{
                 mCurrentVideoID = (int) response.get("video_id");
                 Toast.makeText(CameraActivity.this, "We got a video!!", Toast.LENGTH_SHORT).show();
+                mRecordButton.setImageResource(R.drawable.record_square);
                 if(mRequestingLocation) {
                     Log.e(TAG,"Began location service!");
                     beginLocationServices();
@@ -484,6 +475,7 @@ public class CameraActivity extends AppCompatActivity {
                     "Unable to create video",
                     Toast.LENGTH_SHORT).show();
         }
+        mRecordButton.setEnabled(true);
     }
 
     private void handleLocationResponse(JSONObject response) {
@@ -576,6 +568,34 @@ public class CameraActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        mSession.startPreview();
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        //mClient.stopStream();
+    }
+
+    @Override
+    public void onRtspUpdate(int message, Exception e) {
+        /*switch (message) {
+            case RtspClient.ERROR_CONNECTION_FAILED:
+            case RtspClient.ERROR_WRONG_CREDENTIALS:
+                //mProgressBar.setVisibility(View.GONE);
+                //enableUI();
+                //logError(e.getMessage());
+                //e.printStackTrace();
+                //break;
+        }*/
     }
 
 }

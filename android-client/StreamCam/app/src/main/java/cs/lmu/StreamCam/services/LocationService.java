@@ -95,6 +95,8 @@ public class LocationService extends Service implements
 
         if(mRequestingLocationUpdates) {
             startLocationUpdates();
+        } else{
+            Log.e(TAG, "WE'RE NOT REQUESTING LOCATION!!!!!");
         }
 
         mCurrentLocation = getUserLocation();
@@ -116,7 +118,7 @@ public class LocationService extends Service implements
     @Override
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
-        //Toast.makeText(getApplicationContext(), "We moved " + mLastLocation.distanceTo(mCurrentLocation) + "meters!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "We moved " + mLastLocation.distanceTo(mCurrentLocation) + "meters!", Toast.LENGTH_SHORT).show();
         if(mCurrentLocation.distanceTo(mLastLocation) >= minimumDistanceBetweenLocations) {
             mLastLocation = mCurrentLocation;
             startAddressIntentService();
