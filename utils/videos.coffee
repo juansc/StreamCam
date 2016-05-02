@@ -165,14 +165,7 @@ exports.deleteUserVideo = (req, res) ->
   async.waterfall [
     async.apply(videoBelongsToUser, decoded.user, video_to_delete, res),
     async.apply(deleteVideo, video_to_delete, res),
-    (callback) ->
-      db_client.query
-        text: "DELETE FROM video_manifests *
-               WHERE video_id=$1"
-        values: [video_to_delete]
-      , (db_error, res) ->
-        err = if db_error then res_builder.serverErrorResponse res else null
-        callback err
+    async.apply(deleteVideoManifests, video_to_delete, res)
   ], (err, result)->
     if err
       res = err
