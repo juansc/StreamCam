@@ -6,18 +6,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.util.Size;
 
 import android.view.SurfaceHolder;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -41,7 +41,6 @@ import cs.lmu.StreamCam.Utils.Timestamp;
 import cs.lmu.StreamCam.services.HTTPRequestService;
 import cs.lmu.StreamCam.services.LocationService;
 
-// TODO: Need to implement receiver for POST location
 public class CameraActivity extends AppCompatActivity
         implements Session.Callback,
                    SurfaceHolder.Callback,
@@ -240,149 +239,6 @@ public class CameraActivity extends AppCompatActivity
         Log.e(TAG, "The address has been set in TextView");
     }
 
-    /*private void setupCamera(int width, int height) {
-        CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        try {
-            for(String cameraID: cameraManager.getCameraIdList()) {
-                CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraID);
-                if(cameraCharacteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
-                    continue;
-                }
-                StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-
-                /*int deviceOrientation = getWindowManager().getDefaultDisplay().getRotation();
-                int totalRotation = sensorToDeviceRotation(cameraCharacteristics, deviceOrientation);
-                boolean inLandscapeMode = totalRotation == 90 || totalRotation == 270;
-
-                int rotatedWidth = width;
-                int rotatedHeight = height;
-                if(inLandscapeMode) {
-                    rotatedHeight = width;
-                    rotatedWidth = height;
-                }
-
-                mPreviewSize = getPreferredPreviewSize(map.getOutputSizes(SurfaceTexture.class), width, height);
-                mCameraID = cameraID;
-                return;
-            }
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private Size getPreferredPreviewSize(Size [] mapSizes, int width, int height) {
-        List<Size> collectorSizes = new ArrayList<>();
-        for(Size option: mapSizes) {
-            // If we're in landscape view
-            if(width > height) {
-                if(option.getWidth() > width  && option.getHeight() > height) {
-                    collectorSizes.add(option);
-                }
-            } else {
-                if(option.getWidth() > height && option.getHeight() > width) {
-                    collectorSizes.add(option);
-                }
-            }
-        }
-        if(collectorSizes.size() > 0) {
-            return Collections.min(collectorSizes, new Comparator<Size>() {
-                @Override
-                public int compare(Size lhs, Size rhs) {
-                    return Long.signum(lhs.getWidth() * lhs.getHeight() - rhs.getWidth() * rhs.getHeight());
-                }
-            });
-        }
-        return mapSizes[0];
-    }
-
-    private void openCamera() {
-        CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        try {
-            cameraManager.openCamera(mCameraID, mCameraDeviceStateCallback, mBackgroundHandler);
-        } catch(CameraAccessException | SecurityException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void closeCamera() {
-        if(mCameraCaptureSession != null) {
-            mCameraCaptureSession.close();
-            mCameraCaptureSession = null;
-        }
-        if(mCameraDevice != null) {
-            mCameraDevice.close();
-            mCameraDevice = null;
-        }
-    }
-
-    private void createCameraPreviewSession() {
-        try{
-            // This is where we set up the preview so that we can see an image before
-            // we capture it
-            SurfaceTexture surfaceTexture = mTextureView.getSurfaceTexture();
-            surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-            Surface previewSurface = new Surface(surfaceTexture);
-            mPreviewCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            mPreviewCaptureRequestBuilder.addTarget(previewSurface);
-            mCameraDevice.createCaptureSession(Arrays.asList(previewSurface),
-                    new CameraCaptureSession.StateCallback() {
-                        @Override
-                        public void onConfigured(CameraCaptureSession session) {
-                            if (mCameraDevice == null) {
-                                return;
-                            }
-                            try {
-                                mPreviewCaptureRequest = mPreviewCaptureRequestBuilder.build();
-                                mCameraCaptureSession = session;
-                                // We repeatedly ask for images
-                                mCameraCaptureSession.setRepeatingRequest(
-                                        mPreviewCaptureRequest,
-                                        mSessionCallback,
-                                        mBackgroundHandler
-                                );
-                            } catch (CameraAccessException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        @Override
-                        public void onConfigureFailed(CameraCaptureSession session) {
-                            Toast.makeText(
-                                    getApplicationContext(),
-                                    "We failed to configure camera",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }, null);
-        } catch(CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void openBackgroundThread() {
-        mBackgroundThread = new HandlerThread("Camera 2 Background Thread");
-        mBackgroundThread.start();
-        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
-
-    }
-
-    private void closeBackgroundThread() {
-        mBackgroundThread.quitSafely();
-        try{
-            mBackgroundThread.join();
-            mBackgroundThread = null;
-            mBackgroundHandler = null;
-        } catch(InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static int sensorToDeviceRotation(CameraCharacteristics cameraCharacteristics,int deviceOrientation) {
-        int sensorOrientation = cameraCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
-        deviceOrientation = ORIENTATIONS.get(deviceOrientation);
-        return (sensorOrientation + deviceOrientation + 360) % 360;
-
-    }*/
-
     public void recordButtonHit(View view) {
         if(isStreaming){
             mRecordButton.setImageResource(R.drawable.record_circle);
@@ -409,6 +265,15 @@ public class CameraActivity extends AppCompatActivity
     }
 
     public void locationButtonHit(View view) {
+
+        if(!mRequestingLocation && !isLocationServiceEnabled()) {
+            Toast.makeText(getApplicationContext(),
+                    "Please enable location services.",
+                    Toast.LENGTH_SHORT).show();
+            Intent myIntent = new Intent( Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            this.startActivity(myIntent);
+            return;
+        }
         mRequestingLocation = !mRequestingLocation;
         if(mRequestingLocation) {
             mLocationButton.setImageResource(R.mipmap.location_on);
@@ -596,6 +461,28 @@ public class CameraActivity extends AppCompatActivity
                 //e.printStackTrace();
                 //break;
         }*/
+    }
+
+    public boolean isLocationServiceEnabled(){
+        boolean gps_enabled= false,
+                network_enabled = false;
+
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        try{
+            gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        }catch(Exception ex){
+            //do nothing...
+        }
+
+        try{
+            network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        }catch(Exception ex){
+            //do nothing...
+        }
+
+        return gps_enabled || network_enabled;
+
     }
 
 }
