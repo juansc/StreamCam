@@ -18,8 +18,6 @@ port = process.env.PORT || 3000
 router = express.Router()
 
 
-# All our routes will be here
-
 methodNotAllowed = (req, res) ->
   res.status(405).json
     status: 405

@@ -101,6 +101,16 @@ describe 'StreamCam API', ->
           new_number_of_videos = +result.rows[0].count
           expect(new_number_of_videos).to.equal(number_of_videos + 1)
           done()
+      it 'creates appropriate files', (done) ->
+        db_client.query
+          text: "SELECT * FROM videos order by video_id desc limit 1"
+        , (err, result) ->
+          expect(result.rows[0].video_file)
+            .to.match(/^[a-zA-Z0-9]{10}_\d+\.mp4$/)
+          expect(result.rows[0].manifest_file)
+            .to.match(/^[a-zA-Z0-9]{10}_\d+\.txt$/)
+          done()
+
 
   describe 'Adding to Manifests', ->
     describe 'if the request is good', ->

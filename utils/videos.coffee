@@ -13,28 +13,56 @@ exports.createVideo = (req, res) ->
   return res_builder.invalidTokenResponse res unless decoded
 
   user = decoded.user
-  video_timestamp = req.body.video_timestamp if req.body.video_timestamp
 
-  unless video_timestamp
-    video_timestamp = moment().format()
+  video_timestamp = if req.body.video_timestamp then req.body.video_timestamp else moment().format()
 
+  async.waterfall [
+    async.apply(createNewVideo, user, video_timestamp, res)
+    createAndInsertVideoFileNames
+  ], (err, video_id) ->
+    if err
+      res = err
+    else
+      res = res.status(200).json
+        status: 200
+        message:"Video successfully created."
+        video_id: video_id
+    return res
+
+createNewVideo = (user, timestamp, res, callback) ->
   db_client.query
     text: "WITH new_video_id AS (
                INSERT INTO videos(video_date)
-               values(timestamp '#{video_timestamp}')
+               values(timestamp '#{timestamp}')
                returning video_id
            ) INSERT INTO user_videos(user_id, video_id)
            values(
                (SELECT user_id FROM users WHERE username='#{user}'),
                (SELECT video_id FROM new_video_id)
            ) returning video_id"
-  , (err, results) ->
-    if err
-      return res_builder.serverErrorResponse res
-    res.status(200).json
-      status: 200
-      message:"Video successfully created."
-      video_id: results.rows[0].video_id
+  , (db_error, results) ->
+    err = null
+    console.log db_error if db_error
+    err = res_builder.serverErrorResponse res if db_error
+    callback err, results.rows[0].video_id, res
+
+createAndInsertVideoFileNames = (video_id, res, callback) ->
+  id_prefix_length = 10
+  file_name = generateRandomID(id_prefix_length) + "_#{video_id}"
+  video_file_name = file_name + ".mp4"
+  manifest_file_name = file_name + ".txt"
+  db_client.query
+    text: "UPDATE videos
+           SET
+              video_file='#{video_file_name}',
+              manifest_file='#{manifest_file_name}'
+           WHERE video_id=$1"
+    values: [video_id]
+  , (db_error, results) ->
+    console.log db_error if db_error
+    err = null
+    err = res_builder.serverErrorResponse res if db_error
+    callback err, video_id, file_name, res
 
 exports.closeUserVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
@@ -49,6 +77,9 @@ exports.closeUserVideo = (req, res) ->
   async.waterfall [
     async.apply(videoBelongsToUser, decoded.user, video_id, res),
     async.apply(closeVideo, video_id, res)
+    # TODO
+    #async.apply(closeVideoStream, video_id, res),
+    #async.apply(makeManifest, video_id, res)
   ], (err, result) ->
     if err
       res = err
@@ -57,9 +88,6 @@ exports.closeUserVideo = (req, res) ->
         status: 200
         message: "Video succesfully closed."
     return res
-
-createVideoManifest = (video_id) ->
-  console.log "we don't do anything yet!"
 
 exports.appendManifestToVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
@@ -97,12 +125,14 @@ exports.getUserVideos = (req, res) ->
     return res_builder.UnauthorizedActionResponse res
 
   db_client.query
-    text: "SELECT video_id, video_duration, video_date, video_file, has_manifest
-              FROM
-              user_videos INNER JOIN videos USING (video_id)
-              INNER JOIN users USING(user_id)
-              WHERE username=$1
-              AND video_state='closed'"
+    text: "SELECT
+           video_id, video_duration, video_date,
+           video_file, has_manifest, manifest_file
+           FROM
+           user_videos INNER JOIN videos USING (video_id)
+           INNER JOIN users USING(user_id)
+           WHERE username=$1
+           AND video_state='closed'"
     values: [decoded.user]
   , (err, result) ->
     return res_builder.serverErrorResponse res if err
@@ -226,3 +256,11 @@ makeManifest = (video_id) ->
 
           fs.writeFile manifest_file_name, manifest, (err, data) ->
             console.log err if err
+
+generateRandomID = (n) ->
+  chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  chars_length = chars.length
+  id = ""
+  for ind in [1..n]
+    id += chars[Math.floor(Math.random()*chars_length)]
+  id
