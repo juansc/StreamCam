@@ -7,7 +7,6 @@ res_builder = require '../utils/res_builder'
 
 exports.createVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
-
   return res_builder.UnauthorizedActionResponse res unless user_token
 
   decoded = token.decodeToken user_token
@@ -37,7 +36,7 @@ exports.createVideo = (req, res) ->
       message:"Video successfully created."
       video_id: results.rows[0].video_id
 
-exports.closeVideo = (req, res) ->
+exports.closeUserVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
   return res_builder.UnauthorizedActionResponse res unless user_token
 
@@ -45,41 +44,22 @@ exports.closeVideo = (req, res) ->
   return res_builder.invalidTokenResponse res unless decoded
 
   video_id = req.params.video_id
-  return res_builder.unspecifiedVideoResponse err unless video_id
+  return res_builder.unspecifiedVideoResponse res unless video_id
 
-  video_state = req.body.video_state if req
-  return res_builder.noVideoStateResponse err unless video_state
-
-  db_client.query
-    text: "SELECT EXISTS(
-           SELECT 1 FROM
-           users INNER JOIN user_videos USING (user_id)
-           WHERE video_id=$1 AND username=$2)"
-    values: [video_id, decoded.user]
-  , (err, result) ->
-    console.log err
-    return res_builder.serverErrorResponse res if err
-
-    if !result.rows[0].exists
-      return res_builder.UnauthorizedActionResponse err
+  async.waterfall [
+    async.apply(videoBelongsToUser, decoded.user, video_id, res),
+    async.apply(closeVideo, video_id, res)
+  ], (err, result) ->
+    if err
+      res = err
     else
-      db_client.query
-        text: "UPDATE videos
-               SET video_status='closed'
-               WHERE video_id=$1"
-        values: [video_id]
-      , (err, result) ->
-        console.log err if err
-        return res_builder.serverErrorResponse res if err
-
-        res.status(200).json
-          status: 200
-          message: "Video updated succesfully"
+      res = res.status(200).json
+        status: 200
+        message: "Video succesfully closed."
+    return res
 
 createVideoManifest = (video_id) ->
   console.log "we don't do anything yet!"
-
-
 
 exports.appendManifestToVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
@@ -94,40 +74,17 @@ exports.appendManifestToVideo = (req, res) ->
   video_id = req.params.video_id
   return res_builder.unspecifiedVideoResponse err unless video_id
 
-  # First we check that the video
-  # exists and belongs to the requester
-  db_client.query
-    text: "SELECT EXISTS(
-           SELECT 1 FROM
-           users INNER JOIN user_videos USING (user_id)
-           WHERE video_id=$1 AND username=$2)"
-    values: [video_id, decoded.user]
-  , (db_error, result) ->
-    console.log db_error if db_error
-    return res_builder.serverErrorResponse res if db_error
-
-    if !result.rows[0].exists
-      return res_builder.UnauthorizedActionResponse res
+  async.waterfall [
+    async.apply(videoBelongsToUser, decoded.user, video_id, res),
+    async.apply(insertLocationIntoManifest, video_id, location, res)
+  ], (err, result) ->
+    if err
+      res = err
     else
-      db_client.query
-        text: "INSERT INTO video_manifests
-               (video_id, location_timestamp, address, latitude, longitude)
-               VALUES
-               ($1,$2,$3,$4,$5)"
-        values: [
-          video_id,
-          location.timestamp,
-          location.address,
-          location.latitude,
-          location.longitude
-        ]
-      , (db_error, result) ->
-        console.log db_error if db_error
-        return res_builder.serverErrorResponse res if db_error
-
-        res.status(200).json
-          status: 200
-          message: "Location added succesfully"
+      res = res.status(200).json
+        status: 200
+        message: "Location added succesfully"
+    return res
 
 exports.getUserVideos = (req, res) ->
   user_token = req.body.token or req.headers['token'] if req
@@ -210,8 +167,36 @@ deleteVideo = (video_id, res, callback) ->
     err = if db_error then res_builder.serverErrorResponse res else null
     callback err
 
-exports.makeManifest = (video_id) ->
+insertLocationIntoManifest = (video_id, location, res, callback) ->
+  db_client.query
+    text: "INSERT INTO video_manifests
+           (video_id, location_timestamp, address, latitude, longitude)
+           VALUES
+           ($1,$2,$3,$4,$5)"
+    values: [
+      video_id,
+      location.timestamp,
+      location.address,
+      location.latitude,
+      location.longitude
+    ]
+  , (db_error, result) ->
+    console.log db_error if db_error
+    err = if db_error then res_builder.serverErrorResponse res else null
+    callback err
 
+ closeVideo = (video_id, res, callback) ->
+  db_client.query
+    text: "UPDATE videos
+           SET video_state='closed'
+           WHERE video_id=$1"
+    values: [video_id]
+  , (db_error, result) ->
+    console.log db_error if db_error
+    err = if db_error then res_builder.serverErrorResponse res else null
+    callback err
+
+makeManifest = (video_id) ->
   manifest_file_name = "#{video_id}_manifest.txt"
 
   fs.access manifest_file_name, fs.F_OK, (access_err) ->

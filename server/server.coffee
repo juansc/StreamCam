@@ -39,7 +39,7 @@ app.all '/api/v1/authenticate', methodNotAllowed
 
 app.post '/api/v1/videos', videos.createVideo
 app.get '/api/v1/videos/:user', videos.getUserVideos
-app.post '/api/v1/videos/:video_id', videos.closeVideo
+app.post '/api/v1/videos/:video_id', videos.closeUserVideo
 app.delete '/api/v1/videos/:video_id', videos.deleteUserVideo
 app.all '/api/v1/videos', methodNotAllowed
 

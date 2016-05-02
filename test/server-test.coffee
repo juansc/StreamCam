@@ -147,6 +147,20 @@ describe 'StreamCam API', ->
       it 'the user receives a 403', ->
     describe 'if the location cannot be parsed', ->
       it 'the user receeves a 400', ->
+
+  describe 'Closing a video', ->
+    describe 'if the request is good', ->
+      it 'user gets a 200', (done) ->
+        request url
+          .post '/api/v1/authenticate'
+          .send {user:'Juan', password: 'LizzyLizzy'}
+          .end (err,res) ->
+            token = res.body.token
+            request url
+              .post '/api/v1/videos/1'
+              .send {token}
+              .expect 200, done
+
   describe 'Deleting a video', ->
     describe 'if the request is good', ->
       it 'user gets a 200', (done) ->
@@ -159,3 +173,4 @@ describe 'StreamCam API', ->
               .delete '/api/v1/videos/1'
               .send {token}
               .expect 200, done
+
