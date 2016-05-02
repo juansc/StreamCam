@@ -123,6 +123,7 @@ describe 'StreamCam API', ->
                   longitude: 4
               }
               .expect 200, done
+
       it 'location is added succesfully', ->
         db_client.query
           text: "SELECT EXISTS(
@@ -146,3 +147,15 @@ describe 'StreamCam API', ->
       it 'the user receives a 403', ->
     describe 'if the location cannot be parsed', ->
       it 'the user receeves a 400', ->
+  describe 'Deleting a video', ->
+    describe 'if the request is good', ->
+      it 'user gets a 200', (done) ->
+        request url
+          .post '/api/v1/authenticate'
+          .send {user:'Juan', password: 'LizzyLizzy'}
+          .end (err,res) ->
+            token = res.body.token
+            request url
+              .delete '/api/v1/videos/1'
+              .send {token}
+              .expect 200, done

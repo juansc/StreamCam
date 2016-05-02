@@ -37,7 +37,7 @@ exports.createVideo = (req, res) ->
       message:"Video successfully created."
       video_id: results.rows[0].video_id
 
-exports.modifyVideo = (req, res) ->
+exports.closeVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
   return res_builder.UnauthorizedActionResponse res unless user_token
 
@@ -76,6 +76,10 @@ exports.modifyVideo = (req, res) ->
           status: 200
           message: "Video updated succesfully"
 
+createVideoManifest = (video_id) ->
+  console.log "we don't do anything yet!"
+
+
 
 exports.appendManifestToVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
@@ -98,12 +102,12 @@ exports.appendManifestToVideo = (req, res) ->
            users INNER JOIN user_videos USING (user_id)
            WHERE video_id=$1 AND username=$2)"
     values: [video_id, decoded.user]
-  , (err, result) ->
-    console.log err
-    return res_builder.serverErrorResponse res if err
+  , (db_error, result) ->
+    console.log db_error if db_error
+    return res_builder.serverErrorResponse res if db_error
 
     if !result.rows[0].exists
-      return res_builder.UnauthorizedActionResponse err
+      return res_builder.UnauthorizedActionResponse res
     else
       db_client.query
         text: "INSERT INTO video_manifests
@@ -117,9 +121,9 @@ exports.appendManifestToVideo = (req, res) ->
           location.latitude,
           location.longitude
         ]
-      , (err, result) ->
-        console.log err if err
-        return res_builder.serverErrorResponse res if err
+      , (db_error, result) ->
+        console.log db_error if db_error
+        return res_builder.serverErrorResponse res if db_error
 
         res.status(200).json
           status: 200
@@ -136,7 +140,7 @@ exports.getUserVideos = (req, res) ->
     return res_builder.UnauthorizedActionResponse res
 
   db_client.query
-    text: "SELECT video_id, video_duration, video_date
+    text: "SELECT video_id, video_duration, video_date, video_file, has_manifest
               FROM
               user_videos INNER JOIN videos USING (video_id)
               INNER JOIN users USING(user_id)
@@ -158,40 +162,60 @@ exports.deleteUserVideo = (req, res) ->
   decoded = token.decodeToken user_token
   return res_builder.invalidTokenResponse res unless decoded
 
+  async.waterfall [
+    async.apply(videoBelongsToUser, decoded.user, video_to_delete, res),
+    async.apply(deleteVideo, video_to_delete, res),
+    (callback) ->
+      db_client.query
+        text: "DELETE FROM video_manifests *
+               WHERE video_id=$1"
+        values: [video_to_delete]
+      , (db_error, res) ->
+        err = if db_error then res_builder.serverErrorResponse res else null
+        callback err
+  ], (err, result)->
+    if err
+      res = err
+    else
+      res = res.status(200).json
+        status: 200
+        message: "Video deleted"
+    return res
+
+videoBelongsToUser = (user, video_id, res, callback) ->
   db_client.query
     text: "SELECT EXISTS(
            SELECT 1 FROM
            users INNER JOIN user_videos USING (user_id)
            WHERE video_id=$1 AND username=$2)"
-    values: [video_to_delete, decoded.user]
-  , (err, result) ->
-    return res_builder.serverErrorResponse res if err
+    values: [video_id, user]
+    , (db_error, result) ->
+      err = null
 
-    if !result.rows[0].exists
-      return res_builder.UnauthorizedActionResponse res
-    else
-      async.parallel
-        delete_video: (callback) ->
-          db_client.query
-            text: "DELETE FROM user_videos *
-                   WHERE video_id=$1"
-            values: [video_to_delete]
-          , (err, res) ->
-            callback(null, not err)
-        delete_manifests: (callback)->
-          db_client.query
-            text: "DELETE FROM video_manifests *
-                   WHERE video_id=$1"
-            values: [video_to_delete]
-          , (err, res) ->
-            callback(null, not err)
-      , (err, result) ->
-        if result.delete_video and result.delete_manifests
-          return res.status(200).json
-            status: 200
-            message: "Video deleted"
-        else
-          return res_builder.serverErrorResponse res
+      if db_error
+        err = res_builder.serverErrorResponse res
+      else if !result.rows[0].exists
+        err = res_builder.UnauthorizedActionResponse res
+
+      callback err
+
+deleteVideoManifests = (video_id, res, callback) ->
+  db_client.query
+    text: "DELETE FROM video_manifests *
+           WHERE video_id=$1"
+    values: [video_id]
+  , (db_error, res) ->
+    err = if db_error then res_builder.serverErrorResponse res else null
+    callback err
+
+deleteVideo = (video_id, res, callback) ->
+  db_client.query
+    text: "DELETE FROM user_videos *
+           WHERE video_id=$1"
+    values: [video_id]
+  , (db_error, results) ->
+    err = if db_error then res_builder.serverErrorResponse res else null
+    callback err
 
 exports.makeManifest = (video_id) ->
 
