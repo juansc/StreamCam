@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.ResultReceiver;
@@ -18,6 +19,7 @@ import android.util.Log;
 
 import android.view.SurfaceHolder;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -115,6 +117,10 @@ public class CameraActivity extends AppCompatActivity
         mSurfaceView.setAspectRatioMode(SurfaceView.ASPECT_RATIO_PREVIEW);
         mSurfaceView.getHolder().addCallback(this);
 
+        Window window = this.getWindow();
+
+        window.setStatusBarColor(Color.BLACK);
+
     }
 
 
@@ -136,7 +142,7 @@ public class CameraActivity extends AppCompatActivity
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
+        /*super.onWindowFocusChanged(hasFocus);
         View decorView = getWindow().getDecorView();
         if(hasFocus) {
             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -144,7 +150,7 @@ public class CameraActivity extends AppCompatActivity
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        }
+        }*/
     }
 
     @Override
@@ -265,15 +271,21 @@ public class CameraActivity extends AppCompatActivity
     }
 
     public void locationButtonHit(View view) {
-
         if(!mRequestingLocation && !isLocationServiceEnabled()) {
+            if(!mRequestingLocation){
+                Log.e(TAG, "Not currently asking for location");
+            }
+            if(!isLocationServiceEnabled()){
+                Log.e(TAG, "Location services not enabled.");
+            }
             Toast.makeText(getApplicationContext(),
-                    "Please enable location services.",
-                    Toast.LENGTH_SHORT).show();
+                           "Please enable location services.",
+                           Toast.LENGTH_SHORT).show();
             Intent myIntent = new Intent( Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             this.startActivity(myIntent);
             return;
         }
+
         mRequestingLocation = !mRequestingLocation;
         if(mRequestingLocation) {
             mLocationButton.setImageResource(R.mipmap.location_on);
