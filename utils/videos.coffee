@@ -52,7 +52,7 @@ createNewVideo = (user, timestamp, res, callback) ->
     callback err, results.rows[0].video_id, res
 
 createAndInsertVideoFileNames = (video_id, res, callback) ->
-  id_prefix_length = 10
+  id_prefix_length = 20
   file_name = generateRandomID(id_prefix_length) + "_#{video_id}"
   db_client.query
     text: "UPDATE videos

@@ -106,7 +106,7 @@ describe 'StreamCam API', ->
           text: "SELECT * FROM videos order by video_id desc limit 1"
         , (err, result) ->
           expect(result.rows[0].file_name)
-            .to.match(/^[a-zA-Z0-9]{10}_\d+$/)
+            .to.match(/^[a-zA-Z0-9]{20}_\d+$/)
           done()
 
 
