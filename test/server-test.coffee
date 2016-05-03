@@ -105,10 +105,8 @@ describe 'StreamCam API', ->
         db_client.query
           text: "SELECT * FROM videos order by video_id desc limit 1"
         , (err, result) ->
-          expect(result.rows[0].video_file)
-            .to.match(/^[a-zA-Z0-9]{10}_\d+\.mp4$/)
-          expect(result.rows[0].manifest_file)
-            .to.match(/^[a-zA-Z0-9]{10}_\d+\.txt$/)
+          expect(result.rows[0].file_name)
+            .to.match(/^[a-zA-Z0-9]{10}_\d+$/)
           done()
 
 
@@ -167,7 +165,7 @@ describe 'StreamCam API', ->
           .end (err,res) ->
             token = res.body.token
             request url
-              .post '/api/v1/videos/1'
+              .post '/api/v1/videos/7'
               .send {token}
               .expect 200, done
 
@@ -180,7 +178,7 @@ describe 'StreamCam API', ->
           .end (err,res) ->
             token = res.body.token
             request url
-              .delete '/api/v1/videos/1'
+              .delete '/api/v1/videos/7'
               .send {token}
               .expect 200, done
 

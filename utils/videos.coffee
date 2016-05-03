@@ -5,6 +5,11 @@ async = require 'async'
 fs = require 'fs'
 res_builder = require '../utils/res_builder'
 
+###
+TODO:
+After we close the video we must make the manifest.
+After we close the video we must tell Wowza to stop recording.
+###
 exports.createVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
   return res_builder.UnauthorizedActionResponse res unless user_token
@@ -49,13 +54,9 @@ createNewVideo = (user, timestamp, res, callback) ->
 createAndInsertVideoFileNames = (video_id, res, callback) ->
   id_prefix_length = 10
   file_name = generateRandomID(id_prefix_length) + "_#{video_id}"
-  video_file_name = file_name + ".mp4"
-  manifest_file_name = file_name + ".txt"
   db_client.query
     text: "UPDATE videos
-           SET
-              video_file='#{video_file_name}',
-              manifest_file='#{manifest_file_name}'
+           SET file_name='#{file_name}'
            WHERE video_id=$1"
     values: [video_id]
   , (db_error, results) ->
@@ -77,9 +78,10 @@ exports.closeUserVideo = (req, res) ->
   async.waterfall [
     async.apply(videoBelongsToUser, decoded.user, video_id, res),
     async.apply(closeVideo, video_id, res)
+    async.apply(getFileName, video_id, res)
+    makeManifest
     # TODO
     #async.apply(closeVideoStream, video_id, res),
-    #async.apply(makeManifest, video_id, res)
   ], (err, result) ->
     if err
       res = err
@@ -226,36 +228,46 @@ insertLocationIntoManifest = (video_id, location, res, callback) ->
     err = if db_error then res_builder.serverErrorResponse res else null
     callback err
 
-makeManifest = (video_id) ->
-  manifest_file_name = "#{video_id}_manifest.txt"
+getFileName = (video_id, res, callback) ->
+  db_client.query
+    text: "SELECT file_name FROM videos WHERE video_id=$1"
+    values: [video_id]
+  , (db_error, result) ->
+    console.log db_error if db_error
+    err = if db_error then res_builder.serverErrorResponse res else null
+    callback err, video_id, result.rows[0].file_name, res
 
-  fs.access manifest_file_name, fs.F_OK, (access_err) ->
-    if not access_err
-      res.download manifest_file_name, (err) ->
-        console.log err if err
-    else
-      db_client.query
-        text: "SELECT
-               location_timestamp,
-               address,
-               latitude,
-               longitude
-               FROM video_manifests WHERE video_id=$1"
-        values: [video_id]
-        , (err, result) ->
-          if result.rows.length is 0
-            manifest = "No locations for video #{video_id}"
-          else
-            manifest = "Locations for video #{video_id}\n\n"
-            for row in result.rows
-              manifest_row = "Time: #{row.location_timestamp}
-                              Address: #{row.address}
-                              Long: #{row.longitude}
-                              Lat: #{row.latitude}"
-              manifest += manifest_row + "\n\n"
+makeManifest = (video_id, file_name, res, callback) ->
+  manifest_file_name = "#{file_name}.txt"
 
-          fs.writeFile manifest_file_name, manifest, (err, data) ->
-            console.log err if err
+  db_client.query
+    text: "SELECT
+           location_timestamp,
+           address,
+           latitude,
+           longitude
+           FROM video_manifests WHERE video_id=$1"
+    values: [video_id]
+    , (db_error, result) ->
+      console.log db_error if db_error
+      callback res_builder.serverErrorResponse res if db_error
+
+      if result.rows.length is 0
+        manifest = "No locations for video #{video_id}"
+      else
+        manifest = "Locations for video #{video_id}\n\n"
+        for row in result.rows
+          manifest += "Time: #{row.location_timestamp}
+                          Address: #{row.address}
+                          Long: #{row.longitude}
+                          Lat: #{row.latitude}\n\n"
+
+      fs.writeFile manifest_file_name, manifest, (write_err, data) ->
+        console.log write_err if write_err
+        err = if write_err then res_builder.serverErrorResponse res else null
+        callback err, video_id
+
+
 
 generateRandomID = (n) ->
   chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
