@@ -57,6 +57,7 @@ public class CameraActivity extends AppCompatActivity
     SharedPreferences mPreferences;
     private CreateVideoResultReceiver mVideoResultReceiver;
     private PostLocationResultReceiver mLocationPostResultReceiver;
+    private CloseVideoResultReceiver mCloseVideoResultReceiver;
     private int mCurrentVideoID;
     private Location mCurrentLocation;
     private String mAddress;
@@ -100,6 +101,7 @@ public class CameraActivity extends AppCompatActivity
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mVideoResultReceiver = new CreateVideoResultReceiver(new Handler());
         mLocationPostResultReceiver = new PostLocationResultReceiver(new Handler());
+        mCloseVideoResultReceiver = new CloseVideoResultReceiver(new Handler());
 
         mSession = SessionBuilder.getInstance()
                 .setContext(getApplicationContext())
@@ -156,12 +158,27 @@ public class CameraActivity extends AppCompatActivity
 
     @Override
     public void onSessionStarted() {
+        Toast.makeText(getApplicationContext(), "Streaming Started",Toast.LENGTH_SHORT).show();
         mRecordButton.setImageResource(R.drawable.record_square);
     }
 
     @Override
     public void onSessionStopped() {
+        Toast.makeText(getApplicationContext(), "Streaming Stopped",Toast.LENGTH_SHORT).show();
+        sendCloseVideoRequest();
     }
+
+    public void sendCloseVideoRequest(){
+        Intent intent = new Intent(this, HTTPRequestService.class);
+        intent.putExtra("JSONRequest", createNewJSONRequestBodyToCloseVideo().toString());
+        intent.putExtra("url", Constants.CLOSE_VIDEO_URL + "/" + mCurrentVideoID);
+        intent.putExtra("method", Constants.POST_METHOD);
+        intent.putExtra("httpReceiver", mCloseVideoResultReceiver);
+        startService(intent);
+        Log.e(TAG, "We've sent it to the server!");
+    }
+
+
 
     @Override
     public void onSessionConfigured() {
@@ -331,7 +348,6 @@ public class CameraActivity extends AppCompatActivity
             try{
                 mCurrentVideoID = (int) response.get("video_id");
                 mCurrentVideoFile = response.get("file_name").toString();
-                Toast.makeText(CameraActivity.this, "We got a video!!", Toast.LENGTH_SHORT).show();
                 mRecordButton.setImageResource(0);
                 setupRTSPClient();
                 mClient.startStream();
@@ -369,6 +385,24 @@ public class CameraActivity extends AppCompatActivity
         }
     }
 
+    private void handleCloseVideoResponse(JSONObject response) {
+        int status = 0;
+        String message = "";
+        try{
+            status = (int) response.get("status");
+            message = (String) response.get("message");
+        } catch(JSONException e) {
+            e.printStackTrace();
+        }
+
+        if(status != 200) {
+            Toast.makeText(
+                    getApplicationContext(),
+                    "Unable to close video successfully, got code " + status + ": " + message,
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void postLocationToServer() {
         Intent intent = new Intent(this, HTTPRequestService.class);
         intent.putExtra("JSONRequest", createNewJSONRequestBodyForPostingLocation().toString());
@@ -400,6 +434,18 @@ public class CameraActivity extends AppCompatActivity
         return postRequest;
     }
 
+    private JSONObject createNewJSONRequestBodyToCloseVideo () {
+        JSONObject closeVideoRequest = new JSONObject();
+
+        try {
+            closeVideoRequest.put("token", mPreferences.getString("userToken", ""));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return closeVideoRequest;
+    }
+
     class CreateVideoResultReceiver extends ResultReceiver {
         public CreateVideoResultReceiver(Handler handler) {
             super(handler);
@@ -418,6 +464,29 @@ public class CameraActivity extends AppCompatActivity
                 Toast.makeText(
                         getApplicationContext(),
                         "There was an error making the request",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    class CloseVideoResultReceiver extends ResultReceiver {
+        public CloseVideoResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            if(resultCode == Constants.SUCCESS_RESULT) {
+                try{
+                    Log.e(TAG, "We received a response!!!");
+                    handleCloseVideoResponse(new JSONObject(resultData.getString("JSONResponse")));
+                } catch(JSONException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Toast.makeText(
+                        getApplicationContext(),
+                        "There was an closing the video",
                         Toast.LENGTH_SHORT).show();
             }
         }

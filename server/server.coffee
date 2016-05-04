@@ -41,7 +41,7 @@ app.post '/api/v1/videos/:video_id', videos.closeUserVideo
 app.delete '/api/v1/videos/:video_id', videos.deleteUserVideo
 app.all '/api/v1/videos', methodNotAllowed
 
-
+app.get '/api/v1/manifest/:video_id', videos.getVideoManifest
 app.put '/api/v1/manifest/:video_id', videos.appendManifestToVideo
 
 app.listen port

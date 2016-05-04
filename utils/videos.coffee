@@ -273,7 +273,31 @@ makeManifest = (video_id, file_name, res, callback) ->
         err = if write_err then res_builder.serverErrorResponse res else null
         callback err, video_id
 
+exports.getVideoManifest = (req, res) ->
+  user_token = req.body.token or req.headers['token'] if req
+  return res_builder.UnauthorizedActionResponse res unless user_token
 
+  video_id = req.params.video_id
+  return res_builder.unspecifiedVideoResponse err unless video_id
+
+  decoded = token.decodeToken user_token
+  return res_builder.invalidTokenResponse res unless decoded
+
+  async.waterfall [
+    async.apply(videoBelongsToUser, decoded.user, video_id, res),
+    async.apply(getFileName, video_id, res)
+  ], (err, result)->
+    if err
+      res = err
+    else
+      fs.access manifest_file, fs.F_OK, (access_err) ->
+        console.log access_err if access_err
+        if access_err
+          return callback res_builder.serverErrorResponse res
+        else
+          res.download manifest_file_name, (err) ->
+            console.log err if err
+    return res
 
 generateRandomID = (n) ->
   chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'

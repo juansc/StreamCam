@@ -21,6 +21,7 @@ public final class Constants {
     public static final String CREATE_ACCOUNT_URL = API_DOMAIN + "users";
     public static final String CREATE_VIDEO_URL = API_DOMAIN + "videos";
     public static final String POST_LOCATION_URL = API_DOMAIN + "manifest";
+    public static final String CLOSE_VIDEO_URL = API_DOMAIN + "videos";
 
     public static final int POST_METHOD = Request.Method.POST;
     public static final int PUT_METHOD = Request.Method.PUT;
