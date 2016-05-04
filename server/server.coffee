@@ -47,3 +47,4 @@ app.put '/api/v1/manifest/:video_id', videos.appendManifestToVideo
 app.listen port
 
 console.log "Currently using #{port}"
+console.log "Current dirname is #{__dirname}"
