@@ -130,8 +130,7 @@ exports.getUserVideos = (req, res) ->
 
   db_client.query
     text: "SELECT
-           video_id, video_date,
-           video_file, manifest_file
+           video_id, video_date, file_name
            FROM
            user_videos INNER JOIN videos USING (video_id)
            INNER JOIN users USING(user_id)
