@@ -24,17 +24,9 @@ $(function () {
                 var video_file = videoInfo.video_file;
 
                 var newVideoRow = $(".video-row-template").clone(),
-                    videoDate = new Date(videoInfo.video_date),
-                    duration = videoInfo.video_duration,
-                    durationString = "Unavailable";
-
-                if(!(duration === null || duration === undefined)) {
-                    durationString = videoInfo.video_duration.minutes + ":" +
-                                     videoInfo.video_duration.seconds;
-                }
+                    videoDate = new Date(videoInfo.video_date);
 
                 newVideoRow.find(".video-name").text(videoDate.toGMTString());
-                newVideoRow.find(".video-duration").text(durationString);
                 newVideoRow.find(".download-btn").click(function(event){
                     var dl = document.createElement('a');
                     dl.setAttribute('href', 'http://52.53.190.157:9090/' + video_file);
