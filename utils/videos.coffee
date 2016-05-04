@@ -139,6 +139,7 @@ exports.getUserVideos = (req, res) ->
            AND video_state='closed'"
     values: [decoded.user]
   , (err, result) ->
+    console.log err if err
     return res_builder.serverErrorResponse res if err
     res.status(200).json
       user_videos: result.rows
