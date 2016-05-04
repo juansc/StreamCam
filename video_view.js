@@ -21,7 +21,7 @@ $(function () {
             userVideos.map(function(videoInfo) {
                 //console.log("We got a video");
                 console.log(videoInfo);
-                var video_file = videoInfo.video_file;
+                var file_name = videoInfo.file_name;
 
                 var newVideoRow = $(".video-row-template").clone(),
                     videoDate = new Date(videoInfo.video_date);
@@ -29,7 +29,7 @@ $(function () {
                 newVideoRow.find(".video-name").text(videoDate.toGMTString());
                 newVideoRow.find(".download-btn").click(function(event){
                     var dl = document.createElement('a');
-                    dl.setAttribute('href', 'http://52.53.190.157:9090/' + video_file);
+                    dl.setAttribute('href', 'http://52.53.190.157:9090/' + file_name);
                     dl.setAttribute('download', '');
                     dl.click();
                     dl.remove();
