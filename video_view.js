@@ -15,12 +15,9 @@ $(function () {
             $("#loading-spinner").addClass('hidden');
             return;
         }
-        //console.log("Processing video");
-        //console.log(userVideos);
+
         $("#video-table").append(
             userVideos.map(function(videoInfo) {
-                //console.log("We got a video");
-                console.log(videoInfo);
                 var file_name = videoInfo.file_name;
 
                 var newVideoRow = $(".video-row-template").clone(),
