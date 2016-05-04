@@ -24,7 +24,7 @@ exports.createVideo = (req, res) ->
   async.waterfall [
     async.apply(createNewVideo, user, video_timestamp, res)
     createAndInsertVideoFileNames
-  ], (err, video_id) ->
+  ], (err, video_id, file_name) ->
     if err
       res = err
     else
@@ -32,6 +32,7 @@ exports.createVideo = (req, res) ->
         status: 200
         message:"Video successfully created."
         video_id: video_id
+        file_name: file_name
     return res
 
 createNewVideo = (user, timestamp, res, callback) ->
@@ -48,8 +49,11 @@ createNewVideo = (user, timestamp, res, callback) ->
   , (db_error, results) ->
     err = null
     console.log db_error if db_error
-    err = res_builder.serverErrorResponse res if db_error
-    callback err, results.rows[0].video_id, res
+    if db_error
+      err = res_builder.serverErrorResponse res
+      callback err
+    else
+      callback err, results.rows[0].video_id, res
 
 createAndInsertVideoFileNames = (video_id, res, callback) ->
   id_prefix_length = 20
@@ -80,8 +84,6 @@ exports.closeUserVideo = (req, res) ->
     async.apply(closeVideo, video_id, res)
     async.apply(getFileName, video_id, res)
     makeManifest
-    # TODO
-    #async.apply(closeVideoStream, video_id, res),
   ], (err, result) ->
     if err
       res = err
@@ -234,8 +236,12 @@ getFileName = (video_id, res, callback) ->
     values: [video_id]
   , (db_error, result) ->
     console.log db_error if db_error
-    err = if db_error then res_builder.serverErrorResponse res else null
-    callback err, video_id, result.rows[0].file_name, res
+    err = null
+    if db_error
+      err = res_builder.serverErrorResponse res
+      callback err
+    else
+      callback err, video_id, result.rows[0].file_name, res
 
 makeManifest = (video_id, file_name, res, callback) ->
   manifest_file_name = "#{file_name}.txt"

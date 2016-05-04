@@ -67,6 +67,7 @@ public class CameraActivity extends AppCompatActivity
     private SurfaceView mSurfaceView;
     private Session mSession;
     private RtspClient mClient;
+    private String mCurrentVideoFile;
 
 
     @Override
@@ -141,28 +142,21 @@ public class CameraActivity extends AppCompatActivity
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        /*super.onWindowFocusChanged(hasFocus);
-        View decorView = getWindow().getDecorView();
-        if(hasFocus) {
-            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        }*/
+    public void onResume() {
+        super.onResume();
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        /*openBackgroundThread();;
-        if(mTextureView.isAvailable()){
-            setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
-            openCamera();
-        } else {
-            mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
-        }*/
+    public void onDestroy() {
+        super.onDestroy();
+        mClient.release();
+        mSession.release();
+        mSurfaceView.getHolder().removeCallback(this);
+    }
+
+    @Override
+    public void onSessionStarted() {
+        mRecordButton.setImageResource(R.drawable.record_square);
     }
 
     @Override
@@ -174,11 +168,6 @@ public class CameraActivity extends AppCompatActivity
 
     }
 
-
-    @Override
-    public void onSessionStarted() {
-
-    }
 
     @Override
     public void onBitrateUpdate(long bitrate) {
@@ -219,9 +208,6 @@ public class CameraActivity extends AppCompatActivity
 
     @Override
     public void onPause() {
-        //closeCamera();
-        //closeBackgroundThread();
-
         super.onPause();
     }
 
@@ -247,6 +233,7 @@ public class CameraActivity extends AppCompatActivity
 
     public void recordButtonHit(View view) {
         if(isStreaming){
+            mClient.stopStream();
             mRecordButton.setImageResource(R.drawable.record_circle);
             if(mRequestingLocation) {
                 endLocationServices();
@@ -325,6 +312,12 @@ public class CameraActivity extends AppCompatActivity
         return requestBody;
     }
 
+    private void setupRTSPClient () {
+        mClient.setCredentials("streamcamuser", "grapefruit");
+        mClient.setServerAddress("52.53.190.157", 1935);
+        mClient.setStreamPath("/live/" + mCurrentVideoFile);
+    }
+
     private void handleVideoResponse(JSONObject response) {
         int status = 0;
 
@@ -337,8 +330,11 @@ public class CameraActivity extends AppCompatActivity
         if(status == 200) {
             try{
                 mCurrentVideoID = (int) response.get("video_id");
+                mCurrentVideoFile = response.get("file_name").toString();
                 Toast.makeText(CameraActivity.this, "We got a video!!", Toast.LENGTH_SHORT).show();
-                mRecordButton.setImageResource(R.drawable.record_square);
+                mRecordButton.setImageResource(0);
+                setupRTSPClient();
+                mClient.startStream();
                 if(mRequestingLocation) {
                     Log.e(TAG,"Began location service!");
                     beginLocationServices();
@@ -366,7 +362,10 @@ public class CameraActivity extends AppCompatActivity
         }
 
         if(status != 200)  {
-            Toast.makeText(getApplicationContext(), "Unable to post location succesfully, got code " + status + ": " + message, Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    getApplicationContext(),
+                    "Unable to post location successfully, got code " + status + ": " + message,
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -459,20 +458,20 @@ public class CameraActivity extends AppCompatActivity
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        //mClient.stopStream();
+        mClient.stopStream();
     }
 
     @Override
     public void onRtspUpdate(int message, Exception e) {
-        /*switch (message) {
+        switch (message) {
             case RtspClient.ERROR_CONNECTION_FAILED:
             case RtspClient.ERROR_WRONG_CREDENTIALS:
                 //mProgressBar.setVisibility(View.GONE);
                 //enableUI();
                 //logError(e.getMessage());
-                //e.printStackTrace();
-                //break;
-        }*/
+                e.printStackTrace();
+                break;
+        }
     }
 
     public boolean isLocationServiceEnabled(){
@@ -483,15 +482,10 @@ public class CameraActivity extends AppCompatActivity
 
         try{
             gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        }catch(Exception ex){
-            //do nothing...
-        }
-
+        }catch(Exception ex){ex.printStackTrace();}
         try{
             network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        }catch(Exception ex){
-            //do nothing...
-        }
+        }catch(Exception ex){ex.printStackTrace();}
 
         return gps_enabled || network_enabled;
 
