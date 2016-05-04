@@ -20,6 +20,8 @@ $(function () {
         $("#video-table").append(
             userVideos.map(function(videoInfo) {
                 //console.log("We got a video");
+                console.log(videoInfo);
+                var video_file = videoInfo.video_file;
 
                 var newVideoRow = $(".video-row-template").clone(),
                     videoDate = new Date(videoInfo.video_date),
@@ -33,6 +35,13 @@ $(function () {
 
                 newVideoRow.find(".video-name").text(videoDate.toGMTString());
                 newVideoRow.find(".video-duration").text(durationString);
+                newVideoRow.find(".download-btn").click(function(event){
+                    var dl = document.createElement('a');
+                    dl.setAttribute('href', 'http://52.53.190.157:9090/' + video_file);
+                    dl.setAttribute('download', '');
+                    dl.click();
+                    dl.remove();
+                });
                 newVideoRow.find(".delete-button").click(function(event) {
                     $(this).prop('disabled', true);
 
