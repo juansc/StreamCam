@@ -257,6 +257,9 @@ public class CameraActivity extends AppCompatActivity
     public void recordButtonHit(View view) {
         if(isStreaming){
             mClient.stopStream();
+            Toast.makeText(getApplicationContext(),
+                           "Streaming Stopped",
+                           Toast.LENGTH_SHORT).show();
             mRecordButton.setImageResource(R.drawable.record_circle);
             if(mRequestingLocation) {
                 endLocationServices();
