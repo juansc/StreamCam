@@ -23,14 +23,33 @@ $(function () {
                 var newVideoRow = $(".video-row-template").clone(),
                     videoDate = new Date(videoInfo.video_date);
 
-                newVideoRow.find(".video-name").text(videoDate.toGMTString());
-                newVideoRow.find(".download-btn").click(function(event){
-                    var dl = document.createElement('a');
-                    dl.setAttribute('href', 'http://52.53.190.157:9090/' + file_name + ".mp4");
-                    dl.setAttribute('download', '');
-                    dl.click();
-                    dl.remove();
+
+
+                newVideoRow.find(".video-name").text(videoDate.toLocaleString());
+                newVideoRow.find(".download-video-btn").click(function(event){
+                    $(this).prop('disabled', true);
+
+                    var row = $(this).parents("tr"),
+                        videoID = row.data("videoID");
+
+
+                    $.ajax({
+                        type: "GET",
+                        url: 'https://stream-cam.herokuapp.com/api/v1/manifest/' + videoID,
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        headers: {
+                            "token":localStorage.StreamCamToken,
+                        },
+                        success: function(response) {
+                            console.log(response);
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            $(this).prop('disabled', false);
+                        }
+                    });
                 });
+
                 newVideoRow.find(".delete-button").click(function(event) {
                     $(this).prop('disabled', true);
 
