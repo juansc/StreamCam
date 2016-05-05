@@ -23,6 +23,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,6 +70,7 @@ public class CameraActivity extends AppCompatActivity
     private Session mSession;
     private RtspClient mClient;
     private String mCurrentVideoFile;
+    private ProgressBar mProgressBar;
 
 
     @Override
@@ -91,6 +93,7 @@ public class CameraActivity extends AppCompatActivity
         mRecordButton = (ImageButton) findViewById(R.id.CAMERA_record_button);
         mConnectivityView = (ImageView) findViewById(R.id.connectivity_icon);
         mSurfaceView = (SurfaceView) findViewById(R.id.cameraScreen);
+        mProgressBar = (ProgressBar) findViewById(R.id.CAMERA_progress_bar);
 
         if(ConnectivityMonitor.hasConnection(this)) {
             mConnectivityView.setImageResource(R.mipmap.has_connection);
@@ -159,12 +162,15 @@ public class CameraActivity extends AppCompatActivity
     @Override
     public void onSessionStarted() {
         Toast.makeText(getApplicationContext(), "Streaming Started",Toast.LENGTH_SHORT).show();
+        mProgressBar.setVisibility(View.INVISIBLE);
         mRecordButton.setImageResource(R.drawable.record_square);
     }
 
     @Override
     public void onSessionStopped() {
-        Toast.makeText(getApplicationContext(), "Streaming Stopped",Toast.LENGTH_SHORT).show();
+        if(isStreaming) {
+            Toast.makeText(getApplicationContext(), "Streaming Stopped", Toast.LENGTH_SHORT).show();
+        }
         sendCloseVideoRequest();
     }
 
@@ -258,6 +264,8 @@ public class CameraActivity extends AppCompatActivity
             updateLocationDisplay(null, null);
         } else {
             mRecordButton.setEnabled(false);
+            mProgressBar.setVisibility(View.VISIBLE);
+            mRecordButton.setImageResource(0);
             createNewVideoRequest();
         }
         isStreaming = !isStreaming;
@@ -348,7 +356,6 @@ public class CameraActivity extends AppCompatActivity
             try{
                 mCurrentVideoID = (int) response.get("video_id");
                 mCurrentVideoFile = response.get("file_name").toString();
-                mRecordButton.setImageResource(0);
                 setupRTSPClient();
                 mClient.startStream();
                 if(mRequestingLocation) {
@@ -465,6 +472,8 @@ public class CameraActivity extends AppCompatActivity
                         getApplicationContext(),
                         "There was an error making the request",
                         Toast.LENGTH_SHORT).show();
+                isStreaming = false;
+                mRecordButton.setImageResource(R.drawable.record_circle);
             }
         }
     }

@@ -109,6 +109,19 @@
             android:layout_alignBottom="@+id/CAMERA_record_button"
             android:layout_alignParentEnd="true" />
 
+        <ProgressBar
+            android:layout_width="59dp"
+            android:layout_height="59dp"
+            android:id="@+id/CAMERA_progress_bar"
+            android:visibility="invisible"
+            android:indeterminate="true"
+            android:indeterminateOnly="true"
+            android:indeterminateTint="#FF0000"
+            android:indeterminateTintMode="src_in"
+            android:layout_gravity="center"
+            android:layout_alignBottom="@+id/CAMERA_record_button"
+            android:layout_centerHorizontal="true" />
+
     </RelativeLayout>
 
 
