@@ -27,27 +27,12 @@ $(function () {
 
                 newVideoRow.find(".video-name").text(videoDate.toLocaleString());
                 newVideoRow.find(".download-video-btn").click(function(event){
-                    $(this).prop('disabled', true);
 
-                    var row = $(this).parents("tr"),
-                        videoID = row.data("videoID");
-
-
-                    $.ajax({
-                        type: "GET",
-                        url: 'https://stream-cam.herokuapp.com/api/v1/manifest/' + videoID,
-                        contentType: "application/json; charset=utf-8",
-                        dataType: "json",
-                        headers: {
-                            "token":localStorage.StreamCamToken,
-                        },
-                        success: function(response) {
-                            console.log(response);
-                        },
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            $(this).prop('disabled', false);
-                        }
-                    });
+                    var dl = document.createElement('a');
+                        dl.setAttribute('href', 'http://52.53.190.157:9090/' + video_file);
+                        dl.setAttribute('download', '');
+                        dl.click();
+                        dl.remove();
                 });
 
                 newVideoRow.find(".delete-button").click(function(event) {
