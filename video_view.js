@@ -29,7 +29,7 @@ $(function () {
                 newVideoRow.find(".download-video-btn").click(function(event){
 
                     var dl = document.createElement('a');
-                        dl.setAttribute('href', 'http://52.53.190.157:9090/' + file_name);
+                        dl.setAttribute('href', 'http://52.53.190.157:9090/' + file_name + ".mp4");
                         dl.setAttribute('download', '');
                         dl.click();
                         dl.remove();
