@@ -47,6 +47,7 @@ $(function () {
                         url: 'https://stream-cam.herokuapp.com/api/v1/videos/' + videoID,
                         contentType: "application/json; charset=utf-8",
                         dataType: "json",
+                        crossDomain: true,
                         headers: {
                             "token":localStorage.StreamCamToken,
                         },
@@ -74,6 +75,7 @@ $(function () {
         url: 'https://stream-cam.herokuapp.com/api/v1/videos/' + localStorage.StreamCamUser,
         contentType: "application/json; charset=utf-8",
         dataType: "json",
+        crossDomain: true,
         headers: {
             "token":localStorage.StreamCamToken,
         },

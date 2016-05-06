@@ -15,6 +15,7 @@ $(function () {
             data: requestObject,
             contentType: "application/json; charset=utf-8",
             dataType: "json",
+            crossDomain: true,
             success: function (response) {
                 if(response.status === 200) {
                     clearErrorMessage();
