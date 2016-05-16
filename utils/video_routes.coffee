@@ -2,14 +2,10 @@ token = require '../utils/token'
 db_client = require '../database/database_client'
 moment = require 'moment'
 async = require 'async'
+query = require '../utils/query'
 fs = require 'fs'
 res_builder = require '../utils/res_builder'
 
-###
-TODO:
-After we close the video we must make the manifest.
-After we close the video we must tell Wowza to stop recording.
-###
 exports.createVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
   return res_builder.UnauthorizedActionResponse res unless user_token
@@ -22,8 +18,8 @@ exports.createVideo = (req, res) ->
   video_timestamp = if req.body.video_timestamp then req.body.video_timestamp else moment().format()
 
   async.waterfall [
-    async.apply(createNewVideo, user, video_timestamp, res)
-    createAndInsertVideoFileNames
+    async.apply query.createNewVideo, user, video_timestamp, res
+    query.createAndInsertVideoFileNames
   ], (err, video_id, file_name) ->
     if err
       res = err
@@ -34,40 +30,6 @@ exports.createVideo = (req, res) ->
         video_id: video_id
         file_name: file_name
     return res
-
-createNewVideo = (user, timestamp, res, callback) ->
-  db_client.query
-    text: "WITH new_video_id AS (
-               INSERT INTO videos(video_date)
-               values(timestamp '#{timestamp}')
-               returning video_id
-           ) INSERT INTO user_videos(user_id, video_id)
-           values(
-               (SELECT user_id FROM users WHERE username='#{user}'),
-               (SELECT video_id FROM new_video_id)
-           ) returning video_id"
-  , (db_error, results) ->
-    err = null
-    console.log db_error if db_error
-    if db_error
-      err = res_builder.serverErrorResponse res
-      callback err
-    else
-      callback err, results.rows[0].video_id, res
-
-createAndInsertVideoFileNames = (video_id, res, callback) ->
-  id_prefix_length = 20
-  file_name = generateRandomID(id_prefix_length) + "_#{video_id}"
-  db_client.query
-    text: "UPDATE videos
-           SET file_name='#{file_name}'
-           WHERE video_id=$1"
-    values: [video_id]
-  , (db_error, results) ->
-    console.log db_error if db_error
-    err = null
-    err = res_builder.serverErrorResponse res if db_error
-    callback err, video_id, file_name, res
 
 exports.closeUserVideo = (req, res) ->
   user_token = req.body.token or req.headers['x-access-token'] if req
@@ -80,9 +42,9 @@ exports.closeUserVideo = (req, res) ->
   return res_builder.unspecifiedVideoResponse res unless video_id
 
   async.waterfall [
-    async.apply(videoBelongsToUser, decoded.user, video_id, res),
-    async.apply(closeVideo, video_id, res)
-    async.apply(getFileName, video_id, res)
+    async.apply query.videoBelongsToUser, decoded.user, video_id, res
+    async.apply query.closeVideo, video_id, res
+    async.apply query.getFileName, video_id, res
     makeManifest
   ], (err, result) ->
     if err
@@ -104,11 +66,11 @@ exports.appendManifestToVideo = (req, res) ->
   return res_builder.noLocationIncludedResponse res unless location
 
   video_id = req.params.video_id
-  return res_builder.unspecifiedVideoResponse err unless video_id
+  return res_builder.unspecifiedVideoResponse res unless video_id
 
   async.waterfall [
-    async.apply(videoBelongsToUser, decoded.user, video_id, res),
-    async.apply(insertLocationIntoManifest, video_id, location, res)
+    async.apply query.videoBelongsToUser, decoded.user, video_id, res
+    async.apply query.insertLocationIntoManifest, video_id, location, res
   ], (err, result) ->
     if err
       res = err
@@ -148,15 +110,15 @@ exports.deleteUserVideo = (req, res) ->
   return res_builder.UnauthorizedActionResponse res unless user_token
 
   video_to_delete = req.params.video_id
-  return res_builder.unspecifiedVideoResponse err unless video_to_delete
+  return res_builder.unspecifiedVideoResponse res unless video_to_delete
 
   decoded = token.decodeToken user_token
   return res_builder.invalidTokenResponse res unless decoded
 
   async.waterfall [
-    async.apply(videoBelongsToUser, decoded.user, video_to_delete, res),
-    async.apply(deleteVideo, video_to_delete, res),
-    async.apply(deleteVideoManifests, video_to_delete, res)
+    async.apply query.videoBelongsToUser, decoded.user, video_to_delete, res
+    async.apply query.deleteVideo, video_to_delete, res
+    async.apply query.deleteVideoManifests, video_to_delete, res
   ], (err, result)->
     if err
       res = err
@@ -165,83 +127,6 @@ exports.deleteUserVideo = (req, res) ->
         status: 200
         message: "Video deleted"
     return res
-
-videoBelongsToUser = (user, video_id, res, callback) ->
-  db_client.query
-    text: "SELECT EXISTS(
-           SELECT 1 FROM
-           users INNER JOIN user_videos USING (user_id)
-           WHERE video_id=$1 AND username=$2)"
-    values: [video_id, user]
-    , (db_error, result) ->
-      err = null
-
-      if db_error
-        err = res_builder.serverErrorResponse res
-      else if !result.rows[0].exists
-        err = res_builder.UnauthorizedActionResponse res
-
-      callback err
-
-deleteVideoManifests = (video_id, res, callback) ->
-  db_client.query
-    text: "DELETE FROM video_manifests *
-           WHERE video_id=$1"
-    values: [video_id]
-  , (db_error, res) ->
-    err = if db_error then res_builder.serverErrorResponse res else null
-    callback err
-
-deleteVideo = (video_id, res, callback) ->
-  db_client.query
-    text: "DELETE FROM user_videos *
-           WHERE video_id=$1"
-    values: [video_id]
-  , (db_error, results) ->
-    err = if db_error then res_builder.serverErrorResponse res else null
-    callback err
-
-insertLocationIntoManifest = (video_id, location, res, callback) ->
-  db_client.query
-    text: "INSERT INTO video_manifests
-           (video_id, location_timestamp, address, latitude, longitude)
-           VALUES
-           ($1,$2,$3,$4,$5)"
-    values: [
-      video_id,
-      location.timestamp,
-      location.address,
-      location.latitude,
-      location.longitude
-    ]
-  , (db_error, result) ->
-    console.log db_error if db_error
-    err = if db_error then res_builder.serverErrorResponse res else null
-    callback err
-
- closeVideo = (video_id, res, callback) ->
-  db_client.query
-    text: "UPDATE videos
-           SET video_state='closed'
-           WHERE video_id=$1"
-    values: [video_id]
-  , (db_error, result) ->
-    console.log db_error if db_error
-    err = if db_error then res_builder.serverErrorResponse res else null
-    callback err
-
-getFileName = (video_id, res, callback) ->
-  db_client.query
-    text: "SELECT file_name FROM videos WHERE video_id=$1"
-    values: [video_id]
-  , (db_error, result) ->
-    console.log db_error if db_error
-    err = null
-    if db_error
-      err = res_builder.serverErrorResponse res
-      callback err
-    else
-      callback err, video_id, result.rows[0].file_name, res
 
 makeManifest = (video_id, file_name, res, callback) ->
   manifest_file_name = "#{file_name}.txt"
@@ -278,14 +163,14 @@ exports.getVideoManifest = (req, res) ->
   return res_builder.UnauthorizedActionResponse res unless user_token
 
   video_id = req.params.video_id
-  return res_builder.unspecifiedVideoResponse err unless video_id
+  return res_builder.unspecifiedVideoResponse res unless video_id
 
   decoded = token.decodeToken user_token
   return res_builder.invalidTokenResponse res unless decoded
 
   async.waterfall [
-    async.apply(videoBelongsToUser, decoded.user, video_id, res),
-    async.apply(getFileName, video_id, res)
+    async.apply query.videoBelongsToUser, decoded.user, video_id, res
+    async.apply query.getFileName, video_id, res
   ], (err, result)->
     if err
       res = err
@@ -299,10 +184,4 @@ exports.getVideoManifest = (req, res) ->
             console.log err if err
     return res
 
-generateRandomID = (n) ->
-  chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  chars_length = chars.length
-  id = ""
-  for ind in [1..n]
-    id += chars[Math.floor(Math.random()*chars_length)]
-  id
+

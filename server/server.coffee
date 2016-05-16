@@ -6,7 +6,7 @@ db_client = require '../database/database_client'
 jwt = require 'jwt-simple'
 login = require '../utils/login'
 token = require '../utils/token'
-videos = require '../utils/videos'
+video_routes = require '../utils/video_routes'
 
 
 app.use bodyParser.urlencoded {extended: true}
@@ -35,16 +35,15 @@ app.all '/api/v1/users', methodNotAllowed
 app.post '/api/v1/authenticate', login.authenticateUser
 app.all '/api/v1/authenticate', methodNotAllowed
 
-app.post '/api/v1/videos', videos.createVideo
-app.get '/api/v1/videos/:user', videos.getUserVideos
-app.post '/api/v1/videos/:video_id', videos.closeUserVideo
-app.delete '/api/v1/videos/:video_id', videos.deleteUserVideo
+app.post '/api/v1/videos', video_routes.createVideo
+app.get '/api/v1/videos/:user', video_routes.getUserVideos
+app.post '/api/v1/videos/:video_id', video_routes.closeUserVideo
+app.delete '/api/v1/videos/:video_id', video_routes.deleteUserVideo
 app.all '/api/v1/videos', methodNotAllowed
 
-app.get '/api/v1/manifest/:video_id', videos.getVideoManifest
-app.put '/api/v1/manifest/:video_id', videos.appendManifestToVideo
+app.get '/api/v1/manifest/:video_id', video_routes.getVideoManifest
+app.put '/api/v1/manifest/:video_id', video_routes.appendManifestToVideo
 
 app.listen port
 
 console.log "Currently using #{port}"
-console.log "Current dirname is #{__dirname}"

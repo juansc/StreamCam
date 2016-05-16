@@ -22,6 +22,6 @@
   },
   "scripts": {
     "start": "coffee server/server.coffee",
-    "test": "psql -f database/create_db.sql --quiet && psql -f database/fill_db.sql --quiet && mocha --compilers coffee:coffee-script/register"
+    "test": "psql -f database/create_db.sql --quiet && psql -f database/fill_db.sql --quiet && mocha --compilers coffee:coffee-script/register && rm *_7.txt"
   }
 }
